@@ -13,32 +13,6 @@ $password = '';
 $parameters = array();
 
 var_dump($method, $request, $input);
-$api = $request[0];
-
-switch ($method) {
-    case 'GET':
-        break;
-    case 'PUT':
-        break;
-    case 'POST':
-        break;
-    case 'DELETE':
-        break;
-}
-
-switch ($api) {
-    case 'buildDbSchema':
-        build_db_schema($dbName);
-        break;
-    case 'insertSampleRecords':
-        insert_sample_records($dbName);
-        break;
-    case 'getDocItems':
-        //$docid = $input["docId"];
-        //$userId = $input["userId"];
-        get_doc_items($dbname, $userId, $participantId, $docid);
-        break;
-}
 
 function build_db_schema($dbname) {
     echo("Started build_db_schema...\n");
@@ -954,18 +928,19 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
         }
         $res->close();
     }
-    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName";
-//	if (!strcasecmp ($type, "EOB"))
-    $sql .= ", insurerId, insurerName, insurancePlanId, insurancePlanName";
-    $sql .= ", providerPNI, providerName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled ";
-//	if (!strcasecmp ($type, "EOB"))
-    $sql .= ", amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan";
-    $sql .= " FROM docitems WHERE deleted = 0 AND docId = " . $docid;
-    echo "$sql \n";
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, "
+            . "participantId, participantName, insurerId, insurerName, insurancePlanId, insurancePlanName, "
+            . "providerPNI, providerName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, "
+            . "codeDescr, codeAltDescr, amountBilled , amountExcluded, amountAllowed, coInsAmount, coPayAmount, "
+            . "particPaid, excluded, exclusionCode, exclusionExplan FROM docitems WHERE deleted = 0 AND "
+            //    . "docId = 1 AND userId = 1 AND participantId = 1" . $docid;
+            . "docId = " . $docid;
+
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND participantId = " . $participantId;
+
     $res = $mysqli->query($sql);
     $docItemRes = array();
     if (!($res === false)) {
@@ -1711,7 +1686,11 @@ function main() {
 
     global $cfg;
 //var_dump($cfg);
-    $action = $cfg['action'];
+    $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
+    $action = $request[0];
+    $cfg = json_decode(file_get_contents('php://input'), true);
+    $cfg['dbname'] = "glendor";
+    echo "$action";
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
     if ($action == "insert_sample_records")
