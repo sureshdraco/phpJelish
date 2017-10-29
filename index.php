@@ -821,7 +821,6 @@ function insert_sample_records($dbname) {
 }
 
 function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
-    echo("Started get_doc_list ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -854,11 +853,10 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 // Close connection
     $mysqli->close();
     $docListResJSON = json_encode($docListRes);
-    return $docListResJSON;
+    echo $docListResJSON;
 }
 
 function get_doc_details($dbname, $userId, $participantId, $docid) {
-    echo("Started get_doc_details ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -896,11 +894,10 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 // Close connection
     $mysqli->close();
     $docsDetailResJSON = json_encode($docsDetailRes);
-    return $docsDetailResJSON;
+    echo $docsDetailResJSON;
 }
 
 function get_doc_items($dbname, $userId, $participantId, $docid) {
-    echo("Started get_doc_items ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -940,11 +937,10 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
 // Close connection
     $mysqli->close();
     $docItemResJSON = json_encode($docItemRes);
-    return $docItemResJSON;
+    echo $docItemResJSON;
 }
 
 function get_home_page_texts($dbname) {
-    echo("Started get_home_page_texts ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -963,11 +959,10 @@ function get_home_page_texts($dbname) {
 // Close connection
     $mysqli->close();
     $homePageTextResJSON = json_encode($homePageTextRes);
-    return $homePageTextResJSON;
+    echo $homePageTextResJSON;
 }
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
-    echo("Started get_glendor_snapshot ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1062,11 +1057,10 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
     $mysqli->close();
 
     $snapshotResJSON = json_encode($snapshotRes);
-    return $snapshotResJSON;
+    echo $snapshotResJSON;
 }
 
 function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
-    echo("Started get_notes ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1079,7 +1073,7 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
     $sql = "SELECT * FROM notes INNER JOIN docs ON notes.userId = docs.userId";
     if (!empty($participantId))
         $sql .= " AND notes.participantId = docs.participantId";
-    if (!empty($participantId))
+    if (!empty($particInsPlanId))
         $sql .= " AND notes.particInsPlanId = docs.particInsPlanId";
     $sql .= " WHERE notes.deleted = 0 AND docs.deleted = 0 AND docs.docStatusComplete = ''";
     if (!empty($docId))
@@ -1101,11 +1095,10 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
 // Close connection
     $mysqli->close();
     $noteResJSON = json_encode($noteRes);
-    return $noteResJSON;
+    echo $noteResJSON;
 }
 
 function get_partic_ins_plans($dbname, $userId, $participantId) {
-    echo("Started get_partic_ins_plans ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1132,7 +1125,7 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
     $mysqli->close();
 
     $particInsPlanResJSON = json_encode($particInsPlanRes);
-    return $particInsPlanResJSON;
+    echo $particInsPlanResJSON;
 }
 
 function get_participants($dbname, $userId, $participantId) {
@@ -1623,16 +1616,13 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
 
 function main() {
 // main function
-
-    echo ("came to main\n");
-
     global $cfg;
 //var_dump($cfg);
     $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
     $action = $request[0];
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
-    var_dump($cfg);
+
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
     if ($action == "insert_sample_records")
@@ -1681,7 +1671,6 @@ $cfg = array();
 $cfg['action'] = $argv[1];
 
 //echo ("came to DBProc\n");
-var_dump($cfg);
 //die();
 if ($cfg['action'] == "build_db_schema") {
     $cfg['dbname'] = $argv[2];
