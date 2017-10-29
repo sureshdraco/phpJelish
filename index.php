@@ -1206,7 +1206,6 @@ function log_new_record($dbname, $tableName, $record) {
 }
 
 function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
-    echo("Started log_mod_record ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1265,8 +1264,6 @@ function add_participant($dbname, $userId, $participantJSON) {
 }
 
 function mod_participant($dbname, $userId, $participantId, $participantJSON) {
-    echo("Started mod_participant ...\n");
-    $participant = json_decode($participantJSON, true);
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1282,10 +1279,10 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
         }
         $res->close();
     }
-    $participant['updatedTime'] = time();
-    $participant['id'] = $participantId;
+    $participantJSON['updatedTime'] = time();
+    $participantJSON['id'] = $participantId;
     $sql = "UPDATE participants SET";
-    foreach ($participant as $fieldname => $fieldvalue) {
+    foreach ($participantJSON as $fieldname => $fieldvalue) {
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
@@ -1295,7 +1292,9 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 // Close connection
     $mysqli->close();
-    log_mod_record($dbname, 'participants', $participant, $participantOld);
+    log_mod_record($dbname, 'participants', $participantJSON, $participantOld);
+    $response["participantId"] = $participantId;
+    echo json_encode($response);
 }
 
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
@@ -1345,7 +1344,6 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 }
 
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
-    echo("Started mod_partic_ins_plan ...\n");
     $plan = json_decode($particInsPlanJSON, true);
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
