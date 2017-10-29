@@ -12,8 +12,6 @@ $userName = 'root';
 $password = '';
 $parameters = array();
 
-var_dump($method, $request, $input);
-
 function build_db_schema($dbname) {
     echo("Started build_db_schema...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
@@ -22,7 +20,7 @@ function build_db_schema($dbname) {
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 // Attempt to delete database query execution
-    $sql = "DROP DATABASE IF EXISTS " . $dbname;
+    $sql = "DROP DATABASE " . $dbname;
     if ($mysqli->query($sql) === true)
         echo("Database deleted successfully\n");
     else
@@ -33,7 +31,7 @@ function build_db_schema($dbname) {
         echo("Database created successfully\n");
     else
         echo ("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -89,10 +87,7 @@ function build_db_schema($dbname) {
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
-		insurerId INT NULL,
-		insurerName VARCHAR(255) NULL,
-		insurancePlanId INT NULL,
-		insurancePlanName VARCHAR(255) NULL,
+		particInsPlanName VARCHAR(255) NULL,
 		primaryInsPlan INT NULL,
 		startDate VARCHAR(255) NULL,
 		endDate VARCHAR(255) NULL,
@@ -125,6 +120,7 @@ function build_db_schema($dbname) {
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		providerPNI VARCHAR(255) NULL,
+		particProviderName VARCHAR(255) NULL,
 		providerLastName VARCHAR(255) NULL,
 		providerFirstName VARCHAR(255) NULL,
 		providerMiddleName VARCHAR(255) NULL,
@@ -151,19 +147,17 @@ function build_db_schema($dbname) {
 		updatedTime INT NULL,
 		deleted INT NULL,
 		docType VARCHAR(255) NULL,
-		docStatusUpload VARCHAR(255) NULL,
-		docStatusReview VARCHAR(255) NULL,
-		docStatusComplete VARCHAR(255) NULL,
-		docStatusNote VARCHAR(255) NULL,
+		docStatusUpload VARCHAR(255) NULL,		
+		docStatusReview VARCHAR(255) NULL,		
+		docStatusComplete VARCHAR(255) NULL,	
+		docStatusNote VARCHAR(255) NULL,		
 		issuedDate VARCHAR(255) NULL,
 		userId INT NULL,
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
-		insurerId INT NULL,
-		insurerName VARCHAR(255) NULL,
-		insurancePlanId INT NULL,
-		insurancePlanName VARCHAR(255) NULL,
+		particInsPlanId INT NULL,
+		particInsPlanName VARCHAR(255) NULL,
 		indivDeductPaid VARCHAR(255) NULL,
 		familyDeductPaid VARCHAR(255) NULL,
 		imageId INT NULL,
@@ -174,7 +168,7 @@ function build_db_schema($dbname) {
     else
         echo("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
 
-//	DocItems
+//	DocItems		
     $sql = "CREATE TABLE docitems(
 		id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 		uploadedTime INT NULL,
@@ -187,12 +181,11 @@ function build_db_schema($dbname) {
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
-		insurerId INT NULL,
-		insurerName VARCHAR(255) NULL,
-		insurancePlanId INT NULL,
-		insurancePlanName VARCHAR(255) NULL,
+		particInsPlanId INT NULL,
+		particInsPlanName VARCHAR(255) NULL,
 		providerPNI VARCHAR(255) NULL,
-		providerName VARCHAR(255) NULL,
+		particProviderId INT NULL,
+		particProviderName VARCHAR(255) NULL,
 		serviceDate VARCHAR(255) NULL,
 		placeOfService VARCHAR(255) NULL,
 		codeType VARCHAR(255) NULL,
@@ -217,7 +210,7 @@ function build_db_schema($dbname) {
     else
         echo("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
 
-//	Images
+//	Images		
     $sql = "CREATE TABLE images(
 		id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 		uploadedTime INT NULL,
@@ -229,7 +222,7 @@ function build_db_schema($dbname) {
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
-		imageGroupName VARCHAR(255) NULL,
+		imageName VARCHAR(255) NULL,
 		comments VARCHAR(255) NULL
 	)";
     if ($mysqli->query($sql) === true)
@@ -249,7 +242,8 @@ function build_db_schema($dbname) {
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
-		imageGroupName VARCHAR(255) NULL,
+		imageId INT NULL,
+		imageName VARCHAR(255) NULL,
 		pageNum INT NULL,
 		imageFileName VARCHAR(255) NULL,
 		comments VARCHAR(255) NULL
@@ -270,10 +264,8 @@ function build_db_schema($dbname) {
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
-		insurerId INT NULL,
-		insurerName VARCHAR(255) NULL,
-		insurancePlanId INT NULL,
-		insurancePlanName VARCHAR(255) NULL,
+		particInsPlanId INT NULL,
+		particInsPlanName VARCHAR(255) NULL,
 		docType VARCHAR(255) NULL,
 		tableName VARCHAR(255) NULL,
 		recordId INT NULL,
@@ -563,7 +555,7 @@ function build_db_schema($dbname) {
 
 function insert_sample_records($dbname) {
     echo("Started insert_sample_records...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -634,24 +626,24 @@ function insert_sample_records($dbname) {
 
 
 //	ParticInsPlans
-    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, insurerId, insurerName,
-										insurancePlanId, insurancePlanName, primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, deductInNetworkIndiv,
+    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, particInsPlanName, 
+										primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, deductInNetworkIndiv,
 										deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv,
 										deductAppliedToOop, comments) VALUES
-		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 1, 'Cigna', 1, 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 1, 'Cigna', 1, 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 1, 'Cigna', 1, 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 1, 'Cigna', 1, 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 3, 'Delta Dental', 6, 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 3, 'Delta Dental', 6, 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 2, 'Regency', 3, 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 1, 'Cigna', 2, 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 1, 'Cigna', 2, 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 2, 'Regency',4, 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 2, 'Regency', 4, 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 8, 'James', 2, 'Regency', 3, 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 2, 'Regency', 5, 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 2, 'Regency', 5, 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
+		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -662,15 +654,14 @@ function insert_sample_records($dbname) {
 
 //	Docs
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote,
-							  issuedDate, userId, userName, participantId, participantName, insurerId, insurerName,
-							  insurancePlanId, insurancePlanName, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
-		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', '06/23/17', 1, 'Jane', 1, 'Jane', '', '', '', '', '', '', 1, ''),
-		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', '07/12/17', 1, 'Jane', 2, 'John', '', '', '', '', '', '', 2, ''),
-		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', '05/28/17', 1, 'Jane', 2, 'John', '', '', '', '', '', '', 3, ''),
-		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', '09/01/17', 1, 'Jane', 3, 'Brendan', '', '', '', '', '', '', 4, ''),
-		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', '01/11/17', 2, 'Mary123', 7, 'Jake', 2, 'Regency', 4, 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
-		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', '05/02/17', 2, 'Mary123', 9, 'James Sr.', 2, 'Regency', 4, 'HMO 2000', '234.34', '804.50', 6, ''),
-		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', '10/01/17', 1, 'Jane', 4, 'Ashley', 2, 'Cigna', 4, 'Cigna PPO 5000', '123.55', '314.00', 7, '')
+							  issuedDate, userId, userName, participantId, participantName, particInsPlanName, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
+		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', '06/23/17', 1, 'Jane', 1, 'Jane', '', '', '', 1, ''),
+		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', '07/12/17', 1, 'Jane', 2, 'John', '', '', '', 2, ''),
+		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', '05/28/17', 1, 'Jane', 2, 'John', '', '', '', 3, ''),
+		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', '09/01/17', 1, 'Jane', 3, 'Brendan', '', '', '', 4, ''),
+		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', '01/11/17', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
+		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', '05/02/17', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', '234.34', '804.50', 6, ''),
+		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', '10/01/17', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', '123.55', '314.00', 7, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -680,13 +671,13 @@ function insert_sample_records($dbname) {
 
 
 //	ParticProviders
-    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, providerPNI,
-										 providerLastName, providerFirstName, providerMiddleName, providerSpecialty, providerAddr, providerCountyId, providerCountyName,
-										 providerWebsite, providerEmail, providerPhone, providerFax, comments) VALUES
-		('1505583600', '', 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-		('1506593612', '', 0, 'doctor', 1, 'Jane', 2, 'John', '', 'Jones', 'Allen', '', 'Cardiologist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-		('1506693612', '', 0, 'lab', 1, 'Jane', 2, 'John', '', 'Regent MRI', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-		('1504077878', '', 0, 'hospital', 1, 'Jane', 3, 'Brendan', '', 'Cook County Hospital', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', '')
+    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, providerPNI, 
+										 particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty, providerAddr, 
+										 providerCountyId, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax, comments) VALUES
+		('1505583600', '', 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith, Walter S.', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+		('1506593612', '', 0, 'doctor', 1, 'Jane', 2, 'John', '', 'Jones, Allen', 'Jones', 'Allen', '', 'Cardiologist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+		('1506693612', '', 0, 'lab', 1, 'Jane', 2, 'John', '', 'Regent MRI', 'Regent MRI', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+		('1504077878', '', 0, 'hospital', 1, 'Jane', 3, 'Brendan', '', 'Cook County Hospital', 'Cook County Hospital', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -696,21 +687,20 @@ function insert_sample_records($dbname) {
 
 
 //	DocItems
-    $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName, insurerId,
-								  insurerName, insurancePlanId, insurancePlanName, providerPNI, providerName, serviceDate, placeOfService, codeType, code, codeMod,
-								  codeQty, codeDescr, codeAltDescr, amountBilled, amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid,
-								  excluded, exclusionCode, exclusionExplan, comments) VALUES
-		('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', '', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2,
+    $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName, particInsPlanName, 
+								  providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled, 
+								  amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan, comments) VALUES
+		('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2, 
 								'Toenail Removal (Permanent)', '', 720.75, 220.75, 500.00, 275.00, 0, 178, '', '', '', ''),
-		('1506593612', '', 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '', '', '', '','', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', '', 1,
+		('1506593612', '', 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '','', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', '', 1, 
 								'Echo transesophageal', '', 400.00, 150.00, 250.00, 25.00, 0, 0, '', '', '', ''),
-		('1506693612', '', 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', '', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', '', 1,
+		('1506693612', '', 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', '', 1, 
 								'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', 700.00, 150.00, 550.00, 125.00, 0, 125.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', '53', 1,
+		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', '53', 1, 
 								'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', 8540.00, 3000.00, 5540.00, 1250.00, 0, 1250.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', '', 1,
+		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', '', 1, 
 								'Anesthesia', '', 1520.00, 250.00, 1270.00, 250.00, 0, 250.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 'K35.3', '', '',
+		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 'K35.3', '', '', 
 								'Appendicitis with rupture', '', '', '', '', '', '', '', '', '', '', '')
 	";
 
@@ -721,7 +711,7 @@ function insert_sample_records($dbname) {
 
 
 //	Images
-    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, userName, participantId, participantName, imageGroupName, comments) VALUES
+    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, userName, participantId, participantName, imageName, comments) VALUES
 		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
 		('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
 		('1506693612', '', 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
@@ -738,7 +728,7 @@ function insert_sample_records($dbname) {
 
 
 //	ImagePages
-    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, userName, participantId, participantName, imageGroupName, pageNum, imageFileName, comments) VALUES
+    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, userName, participantId, participantName, imageName, pageNum, imageFileName, comments) VALUES
 		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
 		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
 		('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
@@ -803,11 +793,11 @@ function insert_sample_records($dbname) {
 
 
 //	Notes
-    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, insurerId, insurerName, insurancePlanId, insurancePlanName,
-							   doctype, tableName, recordId, noteText, comments) VALUES
-		('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', '', '', 'Bill', 'docitems', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
-		('1506595612', '', 0, '', 1, 'Jane', 2, 'John', '', '', '', '', 'Bill', 'docitems', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
-		('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 1, 'Cigna', 1, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', '')
+    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, 
+							   particInsPlanId, particInsPlanName, doctype, tableName, recordId, noteText, comments) VALUES
+		('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
+		('1506595612', '', 0, '', 1, 'Jane', 2, 'John', '', '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
+		('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 1, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -830,27 +820,28 @@ function insert_sample_records($dbname) {
     $mysqli->close();
 }
 
-function get_doc_list($dbname, $userId, $participantId, $year) {
+function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
     echo("Started get_doc_list ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
-    $sql = "SELECT uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote,
-				   userId, userName, participantId, participantName, insurerId, insurerName, insurancePlanId, insurancePlanName
-			FROM docs
-			WHERE deleted = 0";
+    $sql = "SELECT uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
+				   userId, userName, participantId, participantName, particInsPlanName FROM docs WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND participantId = " . $participantId;
-    if (!empty($year)) {
-        $begyear = strtotime("1 January " . $year);
-        $endyear = strtotime("31 December " . $year);
-        $sql .= " AND uploadedTime >= " . $begyear . " AND uploadedTime <= " . $endyear;
-    }
+    if (empty($dateFrom))
+        $begsec = 0;
+    $endsec = 2147483647;
+    if (!empty($dateFrom))
+        $begsec = strtotime($dateFrom);
+    if (!empty($dateTo))
+        $endsec = strtotime($dateTo);
+    $sql .= " AND uploadedTime >= " . $begsec . " AND uploadedTime <= " . $endsec;
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
@@ -863,13 +854,12 @@ function get_doc_list($dbname, $userId, $participantId, $year) {
 // Close connection
     $mysqli->close();
     $docListResJSON = json_encode($docListRes);
-    var_dump($docListRes, $docListResJSON);
     return $docListResJSON;
 }
 
 function get_doc_details($dbname, $userId, $participantId, $docid) {
     echo("Started get_doc_details ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -885,11 +875,11 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
         }
         $res->close();
     }
-    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote,
-				   userId, userName, participantId, participantName, ";
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
+				   userId, userName, participantId, participantName ";
 //	if (!strcasecmp ($type, "EOB"))
-    $sql .= "insurerId, insurerName, insurancePlanId, insurancePlanName, indivDeductPaid, familyDeductPaid ";
-    $sql .= " imageId FROM docs WHERE deleted = 0 AND id = " . $docid;
+    $sql .= ", particInsPlanName, indivDeductPaid, familyDeductPaid ";
+    $sql .= ", imageId FROM docs WHERE deleted = 0 AND id = " . $docid;
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
@@ -906,13 +896,12 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 // Close connection
     $mysqli->close();
     $docsDetailResJSON = json_encode($docsDetailRes);
-    var_dump($docsDetailRes, $docsDetailResJSON);
     return $docsDetailResJSON;
 }
 
 function get_doc_items($dbname, $userId, $participantId, $docid) {
     echo("Started get_doc_items ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -928,19 +917,17 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
         }
         $res->close();
     }
-    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, "
-            . "participantId, participantName, insurerId, insurerName, insurancePlanId, insurancePlanName, "
-            . "providerPNI, providerName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, "
-            . "codeDescr, codeAltDescr, amountBilled , amountExcluded, amountAllowed, coInsAmount, coPayAmount, "
-            . "particPaid, excluded, exclusionCode, exclusionExplan FROM docitems WHERE deleted = 0 AND "
-            //    . "docId = 1 AND userId = 1 AND participantId = 1" . $docid;
-            . "docId = " . $docid;
-
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName";
+//	if (!strcasecmp ($type, "EOB"))
+    $sql .= ", particInsPlanName";
+    $sql .= ", providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled ";
+//	if (!strcasecmp ($type, "EOB"))
+    $sql .= ", amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan";
+    $sql .= " FROM docitems WHERE deleted = 0 AND docId = " . $docid;
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND participantId = " . $participantId;
-
     $res = $mysqli->query($sql);
     $docItemRes = array();
     if (!($res === false)) {
@@ -953,134 +940,12 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
 // Close connection
     $mysqli->close();
     $docItemResJSON = json_encode($docItemRes);
-    var_dump($docItemRes, $docItemResJSON);
     return $docItemResJSON;
-}
-
-function log_new_record($dbname, $tableName, $record) {
-    echo("Started log_new_record ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-    foreach ($record as $rkey => $r) {
-        $sql = "INSERT INTO logs (uploadedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
-								 ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . $record['id'] . "', '" . $rkey . "', 'new', '', '" . $r . "')";
-        var_dump($record, $sql);
-        $res = $mysqli->query($sql);
-        if ($res === false)
-            die("ERROR: Could not execute $sql. " . $mysqli->error);
-    }
-// Close connection
-    $mysqli->close();
-}
-
-function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
-    echo("Started log_mod_record ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-    var_dump($dbname, $tableName, $recordNew, $recordOld);
-//die;
-    foreach ($recordNew as $rkey => $r) {
-        $sql = "INSERT INTO logs (updatedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
-								 ('" . $recordNew['updatedTime'] . "', '" . $tableName . "', '" . $recordNew['id'] . "', '" . $rkey . "', 'mod', '" . $recordOld[$rkey] . "', '" . $r . "')";
-        var_dump($rkey, $r, $recordNew['updatedTime'], $sql);
-        die;
-        $res = $mysqli->query($sql);
-        if ($res === false)
-            die("ERROR: Could not execute $sql. " . $mysqli->error);
-    }
-//die;
-// Close connection
-    $mysqli->close();
-}
-
-function add_participant($dbname, $userId, $participantJSON) {
-    echo("Started add_participant ...\n");
-    $participant = json_decode($participantJSON, true);
-
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-    $uploadedTime = time();
-    $sql = "SELECT id, userName FROM users WHERE deleted = 0 AND id = " . $userId;
-    $res = $mysqli->query($sql);
-    $userName = "";
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $userName = $row['userName'];
-            break;
-        }
-        $res->close();
-    }
-    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
-		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participant['participantName'] . "', '" . $participant['gender'] . "', '" . $participant['age'] . "', '" . $participant['relatToUser'] . "', '" . $participant['particPictFilename'] . "')";
-    var_dump($participant, $sql);
-
-    $res = $mysqli->query($sql);
-    if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
-    $participantId = $mysqli->insert_id;
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
-    var_dump($sql);
-    $res = $mysqli->query($sql);
-    while ($record = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-// Close connection
-    $mysqli->close();
-    log_new_record($dbname, $tableName, $record);
-    var_dump($participantId);
-    return $participantId;
-}
-
-function mod_participant($dbname, $userId, $participantId, $participantJSON) {
-    echo("Started mod_participant ...\n");
-    $participant = json_decode($participantJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
-    var_dump($sql);
-    $res = $mysqli->query($sql);
-    $participantOld = array();
-    if (!($res === false)) {
-        while ($participantOld = $res->fetch_assoc()) {
-            break;
-        }
-        $res->close();
-    }
-    $participant['updatedTime'] = time();
-    $participant['id'] = $participantId;
-    $sql = "UPDATE participants SET";
-    foreach ($participant as $fieldname => $fieldvalue) {
-        $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
-    }
-    $sql = preg_replace('/,\s*$/', '', $sql);
-    $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $participantId);
-    var_dump($sql);
-    $res = $mysqli->query($sql);
-    if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
-// Close connection
-    $mysqli->close();
-    log_mod_record($dbname, 'participants', $participant, $participantOld);
-    var_dump($participant);
 }
 
 function get_home_page_texts($dbname) {
     echo("Started get_home_page_texts ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1098,13 +963,12 @@ function get_home_page_texts($dbname) {
 // Close connection
     $mysqli->close();
     $homePageTextResJSON = json_encode($homePageTextRes);
-    var_dump($homePageTextRes, $homePageTextResJSON);
     return $homePageTextResJSON;
 }
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
     echo("Started get_glendor_snapshot ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1133,19 +997,16 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
                 $tot_completed ++;
             if (!isset($deduct[$row['participantId']]))
                 $deduct[$row['participantId']] = array();
-            if (!isset($deduct[$row['participantId']][$row['insurerId']]))
-                $deduct[$row['participantId']][$row['insurerId']] = array();
-            if (!isset($deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']])) {
-                $deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']] = array();
-                if (!isset($deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']]['docs'])) {
-                    $deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']]['docs'] = array();
-                    $count = 0;
-                }
-                $deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']]['docs'][$count]['docId'] = $row['id'];
-                $deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']]['docs'][$count]['timestamp'] = strtotime($row['issuedDate']);
-                $deduct[$row['participantId']][$row['insurerId']][$row['insurancePlanId']]['docs'][$count]['paid'] = $row['indivDeductPaid'];
-                $count ++;
+            if (!isset($deduct[$row['participantId']][$row['particInsPlanId']]))
+                $deduct[$row['participantId']][$row['particInsPlanId']] = array();
+            if (!isset($deduct[$row['participantId']][$row['particInsPlanId']]['docs'])) {
+                $deduct[$row['participantId']][$row['particInsPlanId']]['docs'] = array();
+                $count = 0;
             }
+            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['docId'] = $row['id'];
+            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['timestamp'] = strtotime($row['issuedDate']);
+            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['paid'] = $row['indivDeductPaid'];
+            $count ++;
         }
         $snapshotRes['docs_uploded'] = $tot_uploaded;
         $snapshotRes['docs_completed'] = $tot_completed;
@@ -1154,51 +1015,43 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
             $snapshotRes['docs_completion_perc'] = $tot_completed * 100 / $tot_uploaded;
 
         foreach ($deduct as $key1 => $ded) {
-            foreach ($ded as $key2 => $ins) {
-                foreach ($ins as $key3 => $plan) {
-                    $timestamp = 0;
-                    foreach ($plan['docs'] as $doc) {
-                        if ($timestamp > $doc['timestamp'])
-                            continue;
-                        $timestamp = $doc['timestamp'];
-                        $paid = $doc['paid'];
-                    }
-                    $deduct[$key1][$key2][$key3]['paid'] = $paid;
+            foreach ($ded as $key2 => $plan) {
+                $timestamp = 0;
+                foreach ($plan['docs'] as $doc) {
+                    if ($timestamp > $doc['timestamp'])
+                        continue;
+                    $timestamp = $doc['timestamp'];
+                    $paid = $doc['paid'];
                 }
+                $deduct[$key1][$key2]['paid'] = $paid;
             }
         }
         $snapshotRes['deduct'] = array();
         $count = 0;
         foreach ($deduct as $key1 => $ded) {
-            foreach ($ded as $key2 => $ins) {
-                foreach ($ins as $key3 => $plan) {
-                    $sql = "SELECT userId, userName, participantId, participantName, insurerId, insurerName, insurancePlanId, insurancePlanName, deductInNetworkIndiv
-							FROM particinsplans
-							WHERE deleted = 0";
-                    $sql .= " AND userId = " . $userId;
-                    $sql .= " AND participantId = " . $key1;
-                    $sql .= " AND insurerId = " . $key2;
-                    $sql .= " AND insurancePlanId = " . $key3;
-                    $res1 = $mysqli->query($sql);
-                    if (!($res1 === false)) {
-                        while ($row = $res1->fetch_assoc()) {
-                            $snapshotRes['deduct'][$count]['userId'] = $row['userId'];
-                            $snapshotRes['deduct'][$count]['participantId'] = $row['participantId'];
-                            $snapshotRes['deduct'][$count]['participantName'] = $row['participantName'];
-                            $snapshotRes['deduct'][$count]['insurerId'] = $row['insurerId'];
-                            $snapshotRes['deduct'][$count]['insurerName'] = $row['insurerName'];
-                            $snapshotRes['deduct'][$count]['insurancePlanId'] = $row['insurancePlanId'];
-                            $snapshotRes['deduct'][$count]['insurancePlanName'] = $row['insurancePlanName'];
-                            $snapshotRes['deduct'][$count]['deductible'] = $row['deductInNetworkIndiv'];
-                            $snapshotRes['deduct'][$count]['paid'] = $plan['paid'];
-                            $snapshotRes['deduct'][$count]['deduct_paid_percent'] = 0;
-                            if ($snapshotRes['deduct'][$count]['deductible'] > 0)
-                                $snapshotRes['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['paid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
-                            $count ++;
-                            break;
-                        }
-                        $res1->close();
+            foreach ($ded as $key2 => $plan) {
+                $sql = "SELECT userId, userName, participantId, participantName, particInsPlanName, deductInNetworkIndiv 
+						FROM particinsplans 
+						WHERE deleted = 0";
+                $sql .= " AND userId = " . $userId;
+                $sql .= " AND participantId = " . $key1;
+                $sql .= " AND particInsPlanId = " . $key2;
+                $res1 = $mysqli->query($sql);
+                if (!($res1 === false)) {
+                    while ($row = $res1->fetch_assoc()) {
+                        $snapshotRes['deduct'][$count]['userId'] = $row['userId'];
+                        $snapshotRes['deduct'][$count]['participantId'] = $row['participantId'];
+                        $snapshotRes['deduct'][$count]['participantName'] = $row['participantName'];
+                        $snapshotRes['deduct'][$count]['particInsPlanName'] = $row['particInsPlanId'];
+                        $snapshotRes['deduct'][$count]['deductible'] = $row['deductInNetworkIndiv'];
+                        $snapshotRes['deduct'][$count]['paid'] = $plan['paid'];
+                        $snapshotRes['deduct'][$count]['deduct_paid_percent'] = 0;
+                        if ($snapshotRes['deduct'][$count]['deductible'] > 0)
+                            $snapshotRes['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['paid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
+                        $count ++;
+                        break;
                     }
+                    $res1->close();
                 }
             }
         }
@@ -1209,15 +1062,12 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
     $mysqli->close();
 
     $snapshotResJSON = json_encode($snapshotRes);
-    var_dump($snapshotRes, $snapshotResJSON);
     return $snapshotResJSON;
 }
 
-function get_notes($dbname, $userId, $participantId, $docId) {
+function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
     echo("Started get_notes ...\n");
-    var_dump($dbname, $userId, $participantId, $docId);
-    die;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1225,12 +1075,12 @@ function get_notes($dbname, $userId, $participantId, $docId) {
 
     if (empty($userId))
         die("ERROR: userId should be nonempty");
-    if (empty($docId))
-        die("ERROR: docId should be nonempty");
 
     $sql = "SELECT * FROM notes INNER JOIN docs ON notes.userId = docs.userId";
     if (!empty($participantId))
         $sql .= " AND notes.participantId = docs.participantId";
+    if (!empty($participantId))
+        $sql .= " AND notes.particInsPlanId = docs.particInsPlanId";
     $sql .= " WHERE notes.deleted = 0 AND docs.deleted = 0 AND docs.docStatusComplete = ''";
     if (!empty($docId))
         $sql .= " AND docs.id = " . $docId;
@@ -1251,19 +1101,18 @@ function get_notes($dbname, $userId, $participantId, $docId) {
 // Close connection
     $mysqli->close();
     $noteResJSON = json_encode($noteRes);
-    var_dump($noteRes, $noteResJSON);
     return $noteResJSON;
 }
 
 function get_partic_ins_plans($dbname, $userId, $participantId) {
     echo("Started get_partic_ins_plans ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
-    $sql = "SELECT DISTINCT participantId, participantName, insurerId, insurerName, insurancePlanId, insurancePlanName, primaryInsPlan FROM particinsplans WHERE deleted = 0";
+    $sql = "SELECT DISTINCT participantId, participantName, particInsPlanName, primaryInsPlan FROM particinsplans WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     else
@@ -1271,7 +1120,6 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
     if (!empty($participantId))
         $sql .= " AND participantId = " . $participantId;
     $sql .= " ORDER BY participantId DESC";
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $particInsPlanRes = array();
 
@@ -1284,13 +1132,12 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
     $mysqli->close();
 
     $particInsPlanResJSON = json_encode($particInsPlanRes);
-    var_dump($particInsPlanRes, $particInsPlanResJSON);
     return $particInsPlanResJSON;
 }
 
 function get_participants($dbname, $userId, $participantId) {
     echo("Started get_participants ...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1303,7 +1150,6 @@ function get_participants($dbname, $userId, $participantId) {
     if (!empty($participantId))
         $sql .= " AND id = " . $participantId;
     $sql .= " ORDER BY id ASC";
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $participantRes = array();
     if (!($res === false)) {
@@ -1316,14 +1162,154 @@ function get_participants($dbname, $userId, $participantId) {
     $mysqli->close();
 
     $participantResJSON = json_encode($participantRes);
-    var_dump($participantRes, $participantResJSON);
     return $participantResJSON;
+}
+
+function get_particproviders($dbname, $userId, $participantId) {
+    echo("Started get_particproviders ...\n");
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+// Check connection
+    if ($mysqli === false)
+        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    $sql = "SELECT id, uploadedTime, updatedTime, providerType, providerPNI, particProviderName, providerLastName, providerFirstName, providerMiddleName, 
+				   providerSpecialty, providerAddr, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax 
+				   FROM particproviders WHERE deleted = 0";
+    if (!empty($userId))
+        $sql .= " AND userId = " . $userId;
+    else
+        die("ERROR: userId should be nonempty");
+    if (!empty($participantId))
+        $sql .= " AND id = " . $participantId;
+    $sql .= " ORDER BY id ASC";
+    $res = $mysqli->query($sql);
+    $particProviderRes = array();
+    if (!($res === false)) {
+        while ($row = $res->fetch_assoc()) {
+            $particProviderRes[] = $row;
+        }
+        $res->close();
+    }
+// Close connection
+    $mysqli->close();
+
+    $particProviderResJSON = json_encode($particProviderRes);
+    return $particProviderResJSON;
+}
+
+function log_new_record($dbname, $tableName, $record) {
+    echo("Started log_new_record ...\n");
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+// Check connection
+    if ($mysqli === false)
+        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    foreach ($record as $rkey => $r) {
+        $sql = "INSERT INTO logs (uploadedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
+								 ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . $record['id'] . "', '" . $rkey . "', 'new', '', '" . $r . "')";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            die("ERROR: Could not execute $sql. " . $mysqli->error);
+    }
+// Close connection
+    $mysqli->close();
+}
+
+function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
+    echo("Started log_mod_record ...\n");
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+// Check connection
+    if ($mysqli === false)
+        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    foreach ($recordNew as $rkey => $r) {
+        $sql = "INSERT INTO logs (updatedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
+								 ('" . $recordNew['updatedTime'] . "', '" . $tableName . "', '" . $recordNew['id'] . "', '" . $rkey . "', 'mod', '" . $recordOld[$rkey] . "', '" . $r . "')";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            die("ERROR: Could not execute $sql. " . $mysqli->error);
+    }
+// Close connection
+    $mysqli->close();
+}
+
+function add_participant($dbname, $userId, $participantJSON) {
+    echo("Started add_participant ...\n");
+    $participant = json_decode($participantJSON, true);
+
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+// Check connection
+    if ($mysqli === false)
+        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    $uploadedTime = time();
+    $sql = "SELECT id, userName FROM users WHERE deleted = 0 AND id = " . $userId;
+    $res = $mysqli->query($sql);
+    $userName = "";
+    if (!($res === false)) {
+        while ($row = $res->fetch_assoc()) {
+            $userName = $row['userName'];
+            break;
+        }
+        $res->close();
+    }
+    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
+		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participant['participantName'] . "', '" . $participant['gender'] . "', '" . $participant['age'] . "', '" . $participant['relatToUser'] . "', '" . $participant['particPictFilename'] . "')";
+
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        die("ERROR: Could not execute $sql. " . $mysqli->error);
+    $participantId = $mysqli->insert_id;
+    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
+    $res = $mysqli->query($sql);
+    while ($record = $res->fetch_assoc()) {
+        break;
+    }
+    $res->close();
+// Close connection
+    $mysqli->close();
+    log_new_record($dbname, $tableName, $record);
+    return $participantId;
+}
+
+function mod_participant($dbname, $userId, $participantId, $participantJSON) {
+    echo("Started mod_participant ...\n");
+    $participant = json_decode($participantJSON, true);
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+// Check connection
+    if ($mysqli === false)
+        die("ERROR: Could not connect. " . $mysqli->connect_error);
+
+    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
+    $res = $mysqli->query($sql);
+    $participantOld = array();
+    if (!($res === false)) {
+        while ($participantOld = $res->fetch_assoc()) {
+            break;
+        }
+        $res->close();
+    }
+    $participant['updatedTime'] = time();
+    $participant['id'] = $participantId;
+    $sql = "UPDATE participants SET";
+    foreach ($participant as $fieldname => $fieldvalue) {
+        $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
+    }
+    $sql = preg_replace('/,\s*$/', '', $sql);
+    $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $participantId);
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        die("ERROR: Could not execute $sql. " . $mysqli->error);
+// Close connection
+    $mysqli->close();
+    log_mod_record($dbname, 'participants', $participant, $participantOld);
 }
 
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
     echo("Started add_partic_ins_plan ...\n");
     $plan = json_decode($particInsPlanJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1339,39 +1325,22 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
         break;
     }
     $res->close();
-    $sql = "SELECT id, insurerId, insurerName, insurancePlanId, insurancePlanName FROM insuranceplans
-			WHERE deleted = 0 AND insurerName = '" . $plan['insurerName'] . "' AND insurancePlanName = '" . $plan['insurancePlanName'] . "'";
-    $res = $mysqli->query($sql);
-    var_dump($plan, $sql, $res);
-    $insurerId = "";
-    $insurancePlanId = "";
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $insurerId = $row['insurerId'];
-            $insurancePlanId = $row['id'];
-            break;
-        }
-        $res->close();
-    }
 
-    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, insurerId, insurerName,
-										insurancePlanId, insurancePlanName, primaryInsPlan, startDate, endDate, monthlyPremium,
+    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, 
+										particInsPlanName, primaryInsPlan, startDate, endDate, monthlyPremium, 
 										deductInNetworkFamily, deductInNetworkIndiv, deductOutNetworkFamily, deductOutNetworkIndiv,
 										maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv, deductAppliedToOop) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $plan['particPlanType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantName . "', '" . $participantName . "',
-									    '" . $insurerId . "', '" . $plan['insurerName'] . "', '" . $insurancePlanId . "', '" . $plan['insurancePlanName'] . "',
-										'" . $plan['primaryInsPlan'] . "', '" . $plan['startDate'] . "', '" . $plan['endDate'] . "', '" . $plan['monthlyPremium'] . "',
-										'" . $plan['deductInNetworkFamily'] . "', '" . $plan['deductInNetworkIndiv'] . "', '" . $plan['deductOutNetworkFamily'] . "', '" . $plan['deductOutNetworkIndiv'] . "',
-										'" . $plan['maxOopInNetworkFamily'] . "', '" . $plan['maxOopInNetworkIndiv'] . "', '" . $plan['maxOopOutNetworkFamily'] . "', '" . $plan['maxOopOutNetworkIndiv'] . "',
+									   ('" . $uploadedTime . "', '', '', '" . $plan['particPlanType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantName . "',
+									    '" . $participantName . "', '" . $plan['particInsPlanName'] . "', '" . $plan['primaryInsPlan'] . "', '" . $plan['startDate'] . "',
+										'" . $plan['endDate'] . "', '" . $plan['monthlyPremium'] . "', '" . $plan['deductInNetworkFamily'] . "', '" . $plan['deductInNetworkIndiv'] . "',
+										'" . $plan['deductOutNetworkFamily'] . "', '" . $plan['deductOutNetworkIndiv'] . "', '" . $plan['maxOopInNetworkFamily'] . "',
+										'" . $plan['maxOopInNetworkIndiv'] . "', '" . $plan['maxOopOutNetworkFamily'] . "', '" . $plan['maxOopOutNetworkIndiv'] . "',
 										'" . $plan['deductAppliedToOop'] . "')";
-    var_dump($plan, $sql);
-
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
     $particinsplanId = $mysqli->insert_id;
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particinsplanId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     while ($record = $res->fetch_assoc()) {
         break;
@@ -1380,21 +1349,19 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 // Close connection
     $mysqli->close();
     log_new_record($dbname, $tableName, $record);
-    var_dump($particinsplanId);
     return $particinsplanId;
 }
 
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
     echo("Started mod_partic_ins_plan ...\n");
     $plan = json_decode($particInsPlanJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particInsPlanId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $particInsPlanOld = array();
     if (!($res === false)) {
@@ -1406,29 +1373,25 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
     $plan['updatedTime'] = time();
     $plan['id'] = $particInsPlanId;
 
-    var_dump($sql, $plan);
     $sql = "UPDATE particinsplans SET ";
     foreach ($plan as $fieldname => $fieldvalue) {
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
-        var_dump($fieldname, $fieldvalue);
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId = '%s' AND id = '%s'", $sql, $userId, $particInsPlanId);
-    var_dump($sql, $plan);
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'particinsplans', $plan, $particInsPlanOld);
-    var_dump($partinsplan);
 }
 
 function add_partic_provider($dbname, $userId, $participantId, $particProviderJSON) {
     echo("Started add_partic_provider ...\n");
     $provider = json_decode($particProviderJSON, true);
 
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1450,18 +1413,16 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
         }
         $res->close();
     }
-    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, providerLastName,
-										 providerFirstName, providerMiddleName, providerSpecialty) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $provider['providerType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantId . "', '" . $participantName . "',
-									    '" . $provider['providerLastName'] . "', '" . $provider['providerFirstName'] . "', '" . $provider['providerMiddleName'] . "', '" . $provider['providerSpecialty'] . "')";
-    var_dump($provider, $sql);
-
+    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, 
+										 particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty) VALUES
+									   ('" . $uploadedTime . "', '', '', '" . $provider['providerType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantId . "',
+									    '" . $participantName . "', '" . $provider['particProviderName'] . "', '" . $provider['providerLastName'] . "', 
+										'" . $provider['providerFirstName'] . "', '" . $provider['providerMiddleName'] . "', '" . $provider['providerSpecialty'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
     $particProviderId = $mysqli->insert_id;
     $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND id = " . $particProviderId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     while ($record = $res->fetch_assoc()) {
         break;
@@ -1470,21 +1431,19 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 // Close connection
     $mysqli->close();
     log_new_record($dbname, 'particproviders', $record);
-    var_dump($particProviderId);
     return $particProviderId;
 }
 
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
     echo("Started mod_partic_ins_plan ...\n");
     $provider = json_decode($particProviderJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
     $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND id = " . $particProviderId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $particProviderOld = array();
     if (!($res === false)) {
@@ -1501,21 +1460,19 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $particProviderId);
-    var_dump($sql);
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'particproviders', $provider, $particProviderOld);
-    var_dump($provider);
 }
 
 function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     echo("Started add_note ...\n");
     $note = json_decode($noteJSON, true);
-//var_dump($dbname, $userId, $participantId, $docId, $noteJSON);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
@@ -1542,19 +1499,15 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
         $res->close();
     }
 
-    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, insurerId, insurerName, insurancePlanId,
-										insurancePlanName, docType, tableName, recordId, noteText) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $note['noteType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantId . "', '" . $participantName . "',
-									    '" . $note['insurerId'] . "', '" . $note['insurerName'] . "', '" . $note['insurancePlanId'] . "', '" . $note['insurancePlanName'] . "', '" . $docType . "',
-										'" . "docs" . "', '" . $docId . "', '" . $note['noteText'] . "')";
-    var_dump($note, $sql);
-
+    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, particInsPlanName, 
+							   tableName, recordId, noteText) VALUES
+							   ('" . $uploadedTime . "', '', '', '" . $note['noteType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantId . "', '" . $participantName . "',
+							    '" . $note['particInsPlanName'] . "', '" . "docs" . "', '" . $docId . "', '" . $note['noteText'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
     $noteId = $mysqli->insert_id;
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     while ($record = $res->fetch_assoc()) {
         break;
@@ -1563,21 +1516,19 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 // Close connection
     $mysqli->close();
     log_new_record($dbname, 'notes', $record);
-    var_dump($noteId);
     return $noteId;
 }
 
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
     echo("Started mod_note ...\n");
     $note = json_decode($noteJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $noteOld = array();
     if (!($res === false)) {
@@ -1594,27 +1545,24 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $noteId);
-    var_dump($sql);
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'notes', $note, $noteOld);
-    var_dump($note);
 }
 
 function mod_doc($dbname, $userId, $docId, $docJSON) {
     echo("Started mod_doc ...\n");
     $doc = json_decode($docJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
     $sql = "SELECT * FROM docs WHERE deleted = 0 AND id = " . $docId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $docOld = array();
     if (!($res === false)) {
@@ -1631,27 +1579,24 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docId);
-    var_dump($sql);
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docs', $doc, $docOld);
-    var_dump($doc);
 }
 
 function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     echo("Started mod_docitem ...\n");
     $docitem = json_decode($docitemJSON, true);
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
+// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
     $sql = "SELECT * FROM docitems WHERE deleted = 0 AND id = " . $docitemId;
-    var_dump($sql);
     $res = $mysqli->query($sql);
     $docitemOld = array();
     if (!($res === false)) {
@@ -1662,21 +1607,18 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     }
     $docitem['updatedTime'] = time();
     $docitem['id'] = $docitemId;
-    var_dump($docitem, $dociteOld);
     $sql = "UPDATE docitems SET";
     foreach ($docitem as $fieldname => $fieldvalue) {
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docitemId);
-    var_dump($sql);
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docitems', $docitem, $docitemOld);
-    var_dump($docitem);
 }
 
 function main() {
@@ -1690,31 +1632,33 @@ function main() {
     $action = $request[0];
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
-    echo "$action";
+    var_dump($cfg);
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
     if ($action == "insert_sample_records")
         insert_sample_records($cfg['dbname']);
     if ($action == "get_doc_list")
-        get_doc_list($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['year']);
+        get_doc_list($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['dateFrom'], $cfg['dateTo']);
     if ($action == "get_doc_details")
         get_doc_details($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docid']);
     if ($action == "get_doc_items")
         get_doc_items($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docid']);
-    if ($action == "add_participant")
-        add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
-    if ($action == "mod_participant")
-        mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
     if ($action == "get_home_page_texts")
         get_home_page_texts($cfg['dbname']);
     if ($action == "get_glendor_snapshot")
         get_glendor_snapshot($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['eobOnly']);
     if ($action == "get_notes")
-        get_notes($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docId']);
+        get_notes($cfg['dbname'], $cfg['userId'], $cfg['docId'], $cfg['participantId'], $cfg['particInsPlanId']);
     if ($action == "get_partic_ins_plans")
         get_partic_ins_plans($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "get_participants")
         get_participants($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
+    if ($action == "get_particproviders")
+        get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
+    if ($action == "add_participant")
+        add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
+    if ($action == "mod_participant")
+        mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
     if ($action == "add_partic_ins_plan")
         add_partic_ins_plan($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['particInsPlanJSON']);
     if ($action == "mod_partic_ins_plan")
@@ -1737,7 +1681,7 @@ $cfg = array();
 $cfg['action'] = $argv[1];
 
 //echo ("came to DBProc\n");
-//var_dump($cfg);
+var_dump($cfg);
 //die();
 if ($cfg['action'] == "build_db_schema") {
     $cfg['dbname'] = $argv[2];
@@ -1757,10 +1701,11 @@ if ($cfg['action'] == "get_doc_list") {
     $cfg['dbname'] = $argv[2];
     $cfg['userId'] = $argv[3];
     $cfg['participantId'] = $argv[4];
-    $cfg['year'] = $argv[5];
-    if ($argc != 6) {
+    $cfg['dateFrom'] = $argv[5];
+    $cfg['dateTo'] = $argv[6];
+    if ($argc != 7) {
         print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_doc_list <dbname> <userId> <participantId> <year>");
+        die("Usage: php -f DBProc.php get_doc_list <dbname> <userId> <participantId> <dateFrom> <dateTo>");
     }
 }
 if ($cfg['action'] == "get_doc_details") {
@@ -1783,25 +1728,6 @@ if ($cfg['action'] == "get_doc_items") {
         die("Usage: php -f DBProc.php get_doc_items <dbname> <userId> <participantId> <docid>");
     }
 }
-if ($cfg['action'] == "add_participant") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantJSON'] = $argv[4];
-    if ($argc != 5) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php add_participant <dbname> <userId> <participantJSON>");
-    }
-}
-if ($cfg['action'] == "mod_participant") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['participantJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_participant <dbname> <userId> <participantId> <participantJSON>");
-    }
-}
 if ($cfg['action'] == "get_home_page_texts") {
     $cfg['dbname'] = $argv[2];
     if ($argc != 3) {
@@ -1822,11 +1748,12 @@ if ($cfg['action'] == "get_glendor_snapshot") {
 if ($cfg['action'] == "get_notes") {
     $cfg['dbname'] = $argv[2];
     $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['docId'] = $argv[5];
-    if ($argc != 6) {
+    $cfg['docId'] = $argv[4];
+    $cfg['participantId'] = $argv[5];
+    $cfg['particInsPlanId'] = $argv[6];
+    if ($argc != 7) {
         print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_notes <dbname> <userId> <participantId> <docid>");
+        die("Usage: php -f DBProc.php get_notes <dbname> <userId> <docId> <participantId> <particInsPlanId>");
     }
 }
 if ($cfg['action'] == "get_partic_ins_plans") {
@@ -1845,6 +1772,34 @@ if ($cfg['action'] == "get_participants") {
     if ($argc != 5) {
         print ("DBProc\n");
         die("Usage: php -f DBProc.php get_participants <dbname> <userId> <participantId>");
+    }
+}
+if ($cfg['action'] == "get_particproviders") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    if ($argc != 5) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_particproviders <dbname> <userId> <participantId>");
+    }
+}
+if ($cfg['action'] == "add_participant") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantJSON'] = $argv[4];
+    if ($argc != 5) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php add_participant <dbname> <userId> <participantJSON>");
+    }
+}
+if ($cfg['action'] == "mod_participant") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['participantJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_participant <dbname> <userId> <participantId> <participantJSON>");
     }
 }
 if ($cfg['action'] == "add_partic_ins_plan") {
