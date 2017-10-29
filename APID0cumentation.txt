@@ -219,6 +219,8 @@ Input
 					]
 }
 
+e.g.: {"userId":1, "participantJSON":{"participantName":"sureshkumar","gender":"M","age":"29","indivDeductPaid":"123421","relatToUser":"self"}}
+
 Response 
 [
 	{

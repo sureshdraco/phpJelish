@@ -1189,7 +1189,6 @@ function get_particproviders($dbname, $userId, $participantId) {
 }
 
 function log_new_record($dbname, $tableName, $record) {
-    echo("Started log_new_record ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1225,9 +1224,6 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 }
 
 function add_participant($dbname, $userId, $participantJSON) {
-    echo("Started add_participant ...\n");
-    $participant = json_decode($participantJSON, true);
-
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1244,8 +1240,12 @@ function add_participant($dbname, $userId, $participantJSON) {
         }
         $res->close();
     }
+    if ($participantJSON === null) {
+        echo "Empty participant!";
+        return;
+    }
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
-		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participant['participantName'] . "', '" . $participant['gender'] . "', '" . $participant['age'] . "', '" . $participant['relatToUser'] . "', '" . $participant['particPictFilename'] . "')";
+		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
 
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -1260,7 +1260,8 @@ function add_participant($dbname, $userId, $participantJSON) {
 // Close connection
     $mysqli->close();
     log_new_record($dbname, $tableName, $record);
-    return $participantId;
+    $response["participantId"] = $participantId;
+    echo json_encode($response);
 }
 
 function mod_participant($dbname, $userId, $participantId, $participantJSON) {
@@ -1615,12 +1616,10 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
 function main() {
 // main function
     global $cfg;
-//var_dump($cfg);
     $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
     $action = $request[0];
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
-
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
     if ($action == "insert_sample_records")
@@ -1643,8 +1642,10 @@ function main() {
         get_participants($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "get_particproviders")
         get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
-    if ($action == "add_participant")
+    if ($action == "add_participant") {
+        "test:" . $cfg['participantJSON'];
         add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
+    }
     if ($action == "mod_participant")
         mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
     if ($action == "add_partic_ins_plan")
