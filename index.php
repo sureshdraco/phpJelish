@@ -1129,7 +1129,6 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
 }
 
 function get_participants($dbname, $userId, $participantId) {
-    echo("Started get_participants ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1155,11 +1154,10 @@ function get_participants($dbname, $userId, $participantId) {
     $mysqli->close();
 
     $participantResJSON = json_encode($participantRes);
-    return $participantResJSON;
+    echo $participantResJSON;
 }
 
 function get_particproviders($dbname, $userId, $participantId) {
-    echo("Started get_particproviders ...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1187,7 +1185,7 @@ function get_particproviders($dbname, $userId, $participantId) {
     $mysqli->close();
 
     $particProviderResJSON = json_encode($particProviderRes);
-    return $particProviderResJSON;
+    echo $particProviderResJSON;
 }
 
 function log_new_record($dbname, $tableName, $record) {
