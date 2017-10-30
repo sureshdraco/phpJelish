@@ -1123,7 +1123,6 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
 
 // Close connection
     $mysqli->close();
-
     $particInsPlanResJSON = json_encode($particInsPlanRes);
     echo $particInsPlanResJSON;
 }
@@ -1298,8 +1297,7 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
 }
 
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
-    echo("Started add_partic_ins_plan ...\n");
-    $plan = json_decode($particInsPlanJSON, true);
+    $plan = $particInsPlanJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1340,7 +1338,8 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 // Close connection
     $mysqli->close();
     log_new_record($dbname, $tableName, $record);
-    return $particinsplanId;
+    $response["particinsplanId"] = $particinsplanId;
+    echo json_encode($response);
 }
 
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
