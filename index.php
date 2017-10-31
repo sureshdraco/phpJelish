@@ -1512,8 +1512,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 }
 
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
-    echo("Started mod_note ...\n");
-    $note = json_decode($noteJSON, true);
+    $note = $noteJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1543,6 +1542,8 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'notes', $note, $noteOld);
+    $response["noteId"] = $noteId;
+    echo json_encode($response);
 }
 
 function mod_doc($dbname, $userId, $docId, $docJSON) {
