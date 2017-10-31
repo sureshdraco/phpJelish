@@ -1547,8 +1547,7 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
 }
 
 function mod_doc($dbname, $userId, $docId, $docJSON) {
-    echo("Started mod_doc ...\n");
-    $doc = json_decode($docJSON, true);
+    $doc = $docJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1578,11 +1577,12 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docs', $doc, $docOld);
+    $response["docId"] = $docId;
+    echo json_encode($response);
 }
 
 function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
-    echo("Started mod_docitem ...\n");
-    $docitem = json_decode($docitemJSON, true);
+    $docitem = $docitemJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1612,6 +1612,8 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docitems', $docitem, $docitemOld);
+    $response["docitemId"] = $docitemId;
+    echo json_encode($response);
 }
 
 function main() {
