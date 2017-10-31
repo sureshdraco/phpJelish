@@ -1426,8 +1426,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 }
 
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
-    echo("Started mod_partic_ins_plan ...\n");
-    $provider = json_decode($particProviderJSON, true);
+    $provider = $particProviderJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
 // Check connection
@@ -1457,6 +1456,8 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'particproviders', $provider, $particProviderOld);
+    $response["particProviderId"] = $particProviderId;
+    echo json_encode($response);
 }
 
 function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
