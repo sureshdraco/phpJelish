@@ -1379,8 +1379,7 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
 }
 
 function add_partic_provider($dbname, $userId, $participantId, $particProviderJSON) {
-    echo("Started add_partic_provider ...\n");
-    $provider = json_decode($particProviderJSON, true);
+    $provider = $particProviderJSON;
 
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
@@ -1391,7 +1390,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
     if (empty($userId))
         die("ERROR: userId should be nonempty");
     if (empty($participantId))
-        die("ERROR: userId should be nonempty");
+        die("ERROR: participantId should be nonempty");
     $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userId = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
     $userName = "";
@@ -1422,7 +1421,8 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 // Close connection
     $mysqli->close();
     log_new_record($dbname, 'particproviders', $record);
-    return $particProviderId;
+    $response["particProviderId"] = $particProviderId;
+    echo json_encode($response);
 }
 
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
