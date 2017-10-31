@@ -1461,8 +1461,7 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
 }
 
 function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
-    echo("Started add_note ...\n");
-    $note = json_decode($noteJSON, true);
+    $note = $noteJSON;
 
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
@@ -1508,7 +1507,8 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 // Close connection
     $mysqli->close();
     log_new_record($dbname, 'notes', $record);
-    return $noteId;
+    $response["noteId"] = $noteId;
+    echo json_encode($response);
 }
 
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
