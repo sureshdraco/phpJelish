@@ -9,7 +9,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 $dbName = 'glendor';
 $hostName = 'localhost';
 $userName = 'root';
-$password = '';
+$password = 'hercules15';
 $parameters = array();
 
 function build_db_schema($dbname) {
@@ -151,13 +151,14 @@ function build_db_schema($dbname) {
 		docStatusReview VARCHAR(255) NULL,		
 		docStatusComplete VARCHAR(255) NULL,	
 		docStatusNote VARCHAR(255) NULL,		
-		issuedDate VARCHAR(255) NULL,
 		userId INT NULL,
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		particInsPlanId INT NULL,
 		particInsPlanName VARCHAR(255) NULL,
+		docTime INT NULL,
+		docAmount VARCHAR(255) NULL,
 		indivDeductPaid VARCHAR(255) NULL,
 		familyDeductPaid VARCHAR(255) NULL,
 		imageId INT NULL,
@@ -653,15 +654,15 @@ function insert_sample_records($dbname) {
 
 
 //	Docs
-    $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote,
-							  issuedDate, userId, userName, participantId, participantName, particInsPlanName, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
-		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', '06/23/17', 1, 'Jane', 1, 'Jane', '', '', '', 1, ''),
-		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', '07/12/17', 1, 'Jane', 2, 'John', '', '', '', 2, ''),
-		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', '05/28/17', 1, 'Jane', 2, 'John', '', '', '', 3, ''),
-		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', '09/01/17', 1, 'Jane', 3, 'Brendan', '', '', '', 4, ''),
-		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', '01/11/17', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
-		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', '05/02/17', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', '234.34', '804.50', 6, ''),
-		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', '10/01/17', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', '123.55', '314.00', 7, '')
+    $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, userId, userName, 
+							  participantId, participantName, particInsPlanName, docAmount, docTime, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
+		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', '1505483600', '275.00', '', '', '', 1, ''),
+		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', '1506592612', '25.00', '', '', '', 2, ''),
+		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', '1506692612', '125.00', '', '', '', 3, ''),
+		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', '1504067878', '1500.00', '', '', '', 4, ''),
+		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', '1503287078', '275.00', 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
+		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', '1504287078', '275.00', 'HMO 2000', '234.34', '804.50', 6, ''),
+		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', '1505277078', '275.00', 'Cigna PPO 5000', '123.55', '314.00', 7, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -874,7 +875,7 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
         $res->close();
     }
     $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
-				   userId, userName, participantId, participantName ";
+				   userId, userName, participantId, participantName, docTime, docAmount ";
 //	if (!strcasecmp ($type, "EOB"))
     $sql .= ", particInsPlanName, indivDeductPaid, familyDeductPaid ";
     $sql .= ", imageId FROM docs WHERE deleted = 0 AND id = " . $docid;
