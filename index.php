@@ -8,14 +8,14 @@ $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
 $dbName = 'glendor';
 $hostName = 'localhost';
-$userName = 'root';
+$username = 'root';
 $password = '';
 $parameters = array();
 
 function build_db_schema($dbname) {
     echo("Started build_db_schema...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password']);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password']);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -32,7 +32,7 @@ function build_db_schema($dbname) {
     else
         echo ("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -41,18 +41,23 @@ function build_db_schema($dbname) {
 //	User Info Tables
 // 	====================
 //	Users
-    $sql = "CREATE TABLE users(
-		id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    $sql = "CREATE TABLE members(
+		memberId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 		uploadedTime INT NULL,
 		updatedTime INT NULL,
 		deleted INT NULL,
 		userType VARCHAR(255) NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
+                password VARCHAR(255) NULL,
 		userEmail VARCHAR(255) NULL,
+                active varchar(255) NOT NULL,
+                resetToken varchar(255) DEFAULT NULL,
+                resetComplete varchar(3) DEFAULT 'No',
 		comments VARCHAR(255) NULL
 	)";
+
     if ($mysqli->query($sql) === true)
-        echo("Table USERS created successfully\n");
+        echo("Table MEMBERS created successfully\n");
     else
         echo("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
 //	Participants
@@ -63,7 +68,7 @@ function build_db_schema($dbname) {
 		deleted INT NULL,
 		particType VARCHAR(255) NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantName VARCHAR(255) NULL,
 		gender VARCHAR(255) NULL,
 		age VARCHAR(255) NULL,
@@ -84,7 +89,7 @@ function build_db_schema($dbname) {
 		deleted INT NULL,
 		insurancePlanType VARCHAR(255) NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		particInsPlanName VARCHAR(255) NULL,
@@ -116,7 +121,7 @@ function build_db_schema($dbname) {
 		deleted INT NULL,
 		providerType VARCHAR(255) NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		providerPNI VARCHAR(255) NULL,
@@ -153,7 +158,7 @@ function build_db_schema($dbname) {
 		docStatusNote VARCHAR(255) NULL,		
 		issuedDate VARCHAR(255) NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		particInsPlanId INT NULL,
@@ -178,7 +183,7 @@ function build_db_schema($dbname) {
 		docId INT NULL,
 		docType VARCHAR(255) NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		particInsPlanId INT NULL,
@@ -219,7 +224,7 @@ function build_db_schema($dbname) {
 		imageType VARCHAR(255) NULL,
 		docId INT NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		imageName VARCHAR(255) NULL,
@@ -239,7 +244,7 @@ function build_db_schema($dbname) {
 		imagePageType VARCHAR(255) NULL,
 		docId INT NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		imageId INT NULL,
@@ -261,7 +266,7 @@ function build_db_schema($dbname) {
 		deleted INT NULL,
 		noteType VARCHAR(255) NULL,
 		userId INT NULL,
-		userName VARCHAR(255) NULL,
+		username VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
 		particInsPlanId INT NULL,
@@ -556,7 +561,7 @@ function build_db_schema($dbname) {
 function insert_sample_records($dbname) {
     echo("Started insert_sample_records...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -566,7 +571,7 @@ function insert_sample_records($dbname) {
 //	User Info Tables
 // 	====================
 //	Users
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, comments) VALUES
+    $sql = "INSERT INTO members (uploadedTime, updatedTime, deleted, userType, username, userEmail, comments) VALUES
 		('', '', 0, '', 'Jane', 'jane@ymail.com', ''),
 		('', '', 0, '', 'Mary123', 'mary123@xyz.com', '')
 	";
@@ -577,7 +582,7 @@ function insert_sample_records($dbname) {
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 
 //	Participants
-    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename, comments) VALUES
+    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, username, participantName, gender, age, relatToUser, particPictFilename, comments) VALUES
 		('', '', 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
 		('', '', 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
 		('', '', 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
@@ -626,7 +631,7 @@ function insert_sample_records($dbname) {
 
 
 //	ParticInsPlans
-    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, particInsPlanName, 
+    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, username, participantId, participantName, particInsPlanName, 
 										primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, deductInNetworkIndiv,
 										deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv,
 										deductAppliedToOop, comments) VALUES
@@ -654,7 +659,7 @@ function insert_sample_records($dbname) {
 
 //	Docs
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote,
-							  issuedDate, userId, userName, participantId, participantName, particInsPlanName, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
+							  issuedDate, userId, username, participantId, participantName, particInsPlanName, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
 		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', '06/23/17', 1, 'Jane', 1, 'Jane', '', '', '', 1, ''),
 		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', '07/12/17', 1, 'Jane', 2, 'John', '', '', '', 2, ''),
 		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', '05/28/17', 1, 'Jane', 2, 'John', '', '', '', 3, ''),
@@ -671,7 +676,7 @@ function insert_sample_records($dbname) {
 
 
 //	ParticProviders
-    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, providerPNI, 
+    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, username, participantId, participantName, providerPNI, 
 										 particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty, providerAddr, 
 										 providerCountyId, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax, comments) VALUES
 		('1505583600', '', 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith, Walter S.', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
@@ -687,7 +692,7 @@ function insert_sample_records($dbname) {
 
 
 //	DocItems
-    $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName, particInsPlanName, 
+    $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, username, participantId, participantName, particInsPlanName, 
 								  providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled, 
 								  amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan, comments) VALUES
 		('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2, 
@@ -711,7 +716,7 @@ function insert_sample_records($dbname) {
 
 
 //	Images
-    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, userName, participantId, participantName, imageName, comments) VALUES
+    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, username, participantId, participantName, imageName, comments) VALUES
 		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
 		('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
 		('1506693612', '', 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
@@ -728,7 +733,7 @@ function insert_sample_records($dbname) {
 
 
 //	ImagePages
-    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, userName, participantId, participantName, imageName, pageNum, imageFileName, comments) VALUES
+    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, username, participantId, participantName, imageName, pageNum, imageFileName, comments) VALUES
 		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
 		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
 		('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
@@ -793,7 +798,7 @@ function insert_sample_records($dbname) {
 
 
 //	Notes
-    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, 
+    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, username, participantId, participantName, 
 							   particInsPlanId, particInsPlanName, doctype, tableName, recordId, noteText, comments) VALUES
 		('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
 		('1506595612', '', 0, '', 1, 'Jane', 2, 'John', '', '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
@@ -822,13 +827,13 @@ function insert_sample_records($dbname) {
 
 function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
     $sql = "SELECT uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
-				   userId, userName, participantId, participantName, particInsPlanName FROM docs WHERE deleted = 0";
+				   userId, username, participantId, participantName, particInsPlanName FROM docs WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
@@ -858,7 +863,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 
 function get_doc_details($dbname, $userId, $participantId, $docid) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -874,7 +879,7 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
         $res->close();
     }
     $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
-				   userId, userName, participantId, participantName ";
+				   userId, username, participantId, participantName ";
 //	if (!strcasecmp ($type, "EOB"))
     $sql .= ", particInsPlanName, indivDeductPaid, familyDeductPaid ";
     $sql .= ", imageId FROM docs WHERE deleted = 0 AND id = " . $docid;
@@ -899,7 +904,7 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 
 function get_doc_items($dbname, $userId, $participantId, $docid) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -914,7 +919,7 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
         }
         $res->close();
     }
-    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName";
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, username, participantId, participantName";
 //	if (!strcasecmp ($type, "EOB"))
     $sql .= ", particInsPlanName";
     $sql .= ", providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled ";
@@ -942,7 +947,7 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
 
 function get_home_page_texts($dbname) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -964,7 +969,7 @@ function get_home_page_texts($dbname) {
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1025,7 +1030,7 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
         $count = 0;
         foreach ($deduct as $key1 => $ded) {
             foreach ($ded as $key2 => $plan) {
-                $sql = "SELECT userId, userName, participantId, participantName, particInsPlanName, deductInNetworkIndiv 
+                $sql = "SELECT userId, username, participantId, participantName, particInsPlanName, deductInNetworkIndiv 
 						FROM particinsplans 
 						WHERE deleted = 0";
                 $sql .= " AND userId = " . $userId;
@@ -1062,7 +1067,7 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
 
 function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1100,7 +1105,7 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
 
 function get_partic_ins_plans($dbname, $userId, $participantId) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1129,7 +1134,7 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
 
 function get_participants($dbname, $userId, $participantId) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1158,7 +1163,7 @@ function get_participants($dbname, $userId, $participantId) {
 
 function get_particproviders($dbname, $userId, $participantId) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1189,7 +1194,7 @@ function get_particproviders($dbname, $userId, $participantId) {
 
 function log_new_record($dbname, $tableName, $record) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1206,7 +1211,7 @@ function log_new_record($dbname, $tableName, $record) {
 
 function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1223,17 +1228,17 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 
 function add_participant($dbname, $userId, $participantJSON) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
     $uploadedTime = time();
-    $sql = "SELECT id, userName FROM users WHERE deleted = 0 AND id = " . $userId;
+    $sql = "SELECT memberId, username FROM members WHERE deleted = 0 AND memberId = " . $userId;
     $res = $mysqli->query($sql);
-    $userName = "";
+    $username = "";
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $userName = $row['userName'];
+            $username = $row['username'];
             break;
         }
         $res->close();
@@ -1242,8 +1247,8 @@ function add_participant($dbname, $userId, $participantJSON) {
         echo "Empty participant!";
         return;
     }
-    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
-		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
+    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, username, participantName, gender, age, relatToUser, particPictFilename) VALUES
+		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $username . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
 
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -1264,7 +1269,7 @@ function add_participant($dbname, $userId, $participantJSON) {
 
 function mod_participant($dbname, $userId, $participantId, $participantJSON) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1299,27 +1304,27 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
     $uploadedTime = time();
-    $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
+    $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
-    $userName = "";
+    $username = "";
     $participantName = "";
     while ($row = $res->fetch_assoc()) {
-        $userName = $row['userName'];
+        $username = $row['username'];
         $participantName = $row['participantName'];
         break;
     }
     $res->close();
 
-    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, 
+    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, username, participantId, participantName, 
 										particInsPlanName, primaryInsPlan, startDate, endDate, monthlyPremium, 
 										deductInNetworkFamily, deductInNetworkIndiv, deductOutNetworkFamily, deductOutNetworkIndiv,
 										maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv, deductAppliedToOop) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $plan['particPlanType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantName . "',
+									   ('" . $uploadedTime . "', '', '', '" . $plan['particPlanType'] . "', '" . $userId . "', '" . $username . "', '" . $participantName . "',
 									    '" . $participantName . "', '" . $plan['particInsPlanName'] . "', '" . $plan['primaryInsPlan'] . "', '" . $plan['startDate'] . "',
 										'" . $plan['endDate'] . "', '" . $plan['monthlyPremium'] . "', '" . $plan['deductInNetworkFamily'] . "', '" . $plan['deductInNetworkIndiv'] . "',
 										'" . $plan['deductOutNetworkFamily'] . "', '" . $plan['deductOutNetworkIndiv'] . "', '" . $plan['maxOopInNetworkFamily'] . "',
@@ -1345,7 +1350,7 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1382,7 +1387,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
     $provider = $particProviderJSON;
 
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1391,21 +1396,21 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
         die("ERROR: userId should be nonempty");
     if (empty($participantId))
         die("ERROR: participantId should be nonempty");
-    $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userId = " . $userId . " AND id = " . $participantId;
+    $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userId = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
-    $userName = "";
+    $username = "";
     $participantName = "";
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $userName = $row['userName'];
+            $username = $row['username'];
             $participantName = $row['participantName'];
             break;
         }
         $res->close();
     }
-    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, 
+    $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, username, participantId, participantName, 
 										 particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $provider['providerType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantId . "',
+									   ('" . $uploadedTime . "', '', '', '" . $provider['providerType'] . "', '" . $userId . "', '" . $username . "', '" . $participantId . "',
 									    '" . $participantName . "', '" . $provider['particProviderName'] . "', '" . $provider['providerLastName'] . "', 
 										'" . $provider['providerFirstName'] . "', '" . $provider['providerMiddleName'] . "', '" . $provider['providerSpecialty'] . "')";
     $res = $mysqli->query($sql);
@@ -1428,7 +1433,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
     $provider = $particProviderJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1464,7 +1469,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     $note = $noteJSON;
 
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1477,22 +1482,22 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
         die("ERROR: docId should be nonempty");
 
     $uploadedTime = time();
-    $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
+    $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
-    $userName = "";
+    $username = "";
     $participantName = "";
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $userName = $row['userName'];
+            $username = $row['username'];
             $participantName = $row['participantName'];
             break;
         }
         $res->close();
     }
 
-    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, particInsPlanName, 
+    $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, username, participantId, participantName, particInsPlanName, 
 							   tableName, recordId, noteText) VALUES
-							   ('" . $uploadedTime . "', '', '', '" . $note['noteType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantId . "', '" . $participantName . "',
+							   ('" . $uploadedTime . "', '', '', '" . $note['noteType'] . "', '" . $userId . "', '" . $username . "', '" . $participantId . "', '" . $participantName . "',
 							    '" . $note['particInsPlanName'] . "', '" . "docs" . "', '" . $docId . "', '" . $note['noteText'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -1514,7 +1519,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
     $note = $noteJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1549,7 +1554,7 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
 function mod_doc($dbname, $userId, $docId, $docJSON) {
     $doc = $docJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1584,7 +1589,7 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
 function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     $docitem = $docitemJSON;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1616,6 +1621,48 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     echo json_encode($response);
 }
 
+function login($dbname, $username, $password) {
+    include('login/classes/user.php');
+    include('login/classes/phpmailer/mail.php');
+    try {
+        //create PDO connection
+        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $dbname, $GLOBALS['username'], $GLOBALS['password']);
+        //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
+        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    } catch (PDOException $e) {
+        //show error
+        echo '<p class="bg-danger">' . $e->getMessage() . '</p>';
+        exit;
+    }
+    $user = new User($db);
+    if (!isset($username))
+        $error[] = "Please fill out all fields";
+    if (!isset($password))
+        $error[] = "Please fill out all fields";
+
+    if ($user->isValidUsername($username)) {
+        if (!isset($password)) {
+            $error[] = 'A password must be entered';
+        }
+        if ($user->login($username, $password)) {
+//            $_SESSION['username'] = $username;
+            //          header('Location: memberpage.php');
+            exit;
+        } else {
+            $error[] = 'Wrong username or password or your account has not been activated.';
+        }
+    } else {
+        $error[] = 'Usernames are required to be Alphanumeric, and between 3-16 characters long';
+    }
+    if (empty($error)) {
+        $response = "success";
+    } else {
+        $response = $error;
+    }
+    echo json_encode($response);
+}
+
 function main() {
 // main function
     global $cfg;
@@ -1625,6 +1672,8 @@ function main() {
     $cfg['dbname'] = "glendor";
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
+    if ($action == "login")
+        login($cfg['dbname'], $cfg['userName'], $cfg['password']);
     if ($action == "insert_sample_records")
         insert_sample_records($cfg['dbname']);
     if ($action == "get_doc_list")
