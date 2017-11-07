@@ -87,6 +87,7 @@ function build_db_schema($dbname) {
 		userName VARCHAR(255) NULL,
 		participantId INT NULL,
 		participantName VARCHAR(255) NULL,
+		particInsurerName VARCHAR(255) NULL,
 		particInsPlanName VARCHAR(255) NULL,
 		primaryInsPlan INT NULL,
 		startDate VARCHAR(255) NULL,
@@ -627,24 +628,24 @@ function insert_sample_records($dbname) {
 
 
 //	ParticInsPlans
-    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, particInsPlanName, 
-										primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, deductInNetworkIndiv,
-										deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv,
-										deductAppliedToOop, comments) VALUES
-		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
+    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, 
+										particInsurerName, particInsPlanName, primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, 
+										deductInNetworkIndiv, deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, 
+										maxOopOutNetworkFamily, maxOopOutNetworkIndiv, deductAppliedToOop, comments) VALUES
+		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		('', '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'Regence', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Regence', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Regence', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'Regence', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'Regence', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
+		('', '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'Regence', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -655,14 +656,14 @@ function insert_sample_records($dbname) {
 
 //	Docs
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, userId, userName, 
-							  participantId, participantName, particInsPlanName, docAmount, docTime, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
-		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', '1505483600', '275.00', '', '', '', 1, ''),
-		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', '1506592612', '25.00', '', '', '', 2, ''),
-		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', '1506692612', '125.00', '', '', '', 3, ''),
-		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', '1504067878', '1500.00', '', '', '', 4, ''),
-		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', '1503287078', '275.00', 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
-		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', '1504287078', '275.00', 'HMO 2000', '234.34', '804.50', 6, ''),
-		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', '1505277078', '275.00', 'Cigna PPO 5000', '123.55', '314.00', 7, '')
+							  participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
+		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505483600', '275.00', '', '', 1, ''),
+		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506592612', '25.00', '', '', 2, ''),
+		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506692612', '125.00', '', '', 3, ''),
+		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', 3, 'Cigna PPO 5000', '1504067878', '1500.00', '', '', 4, ''),
+		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', 9, 'Cigna EPO 2500', '1503287078', '275.00', '785.34', '1200.47', 5, ''),
+		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', 13, 'HMO 2000', '1504287078', '275.00', '234.34', '804.50', 6, ''),
+		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505277078', '275.00', '123.55', '314.00', 7, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -688,20 +689,21 @@ function insert_sample_records($dbname) {
 
 
 //	DocItems
-    $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName, particInsPlanName, 
-								  providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled, 
-								  amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan, comments) VALUES
-		('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2, 
+    $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, userName, participantId, participantName, 
+								  particInsPlanId, particInsPlanName, providerPNI, particProviderName, serviceDate, placeOfService, codeType, 
+								  code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled, amountExcluded, amountAllowed, coInsAmount, coPayAmount, 
+								  particPaid, excluded, exclusionCode, exclusionExplan, comments) VALUES
+		('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2, 
 								'Toenail Removal (Permanent)', '', 720.75, 220.75, 500.00, 275.00, 0, 178, '', '', '', ''),
-		('1506593612', '', 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '','', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', '', 1, 
+		('1506593612', '', 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '', '', '', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', '', 1, 
 								'Echo transesophageal', '', 400.00, 150.00, 250.00, 25.00, 0, 0, '', '', '', ''),
-		('1506693612', '', 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', '', 1, 
+		('1506693612', '', 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', '', 1, 
 								'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', 700.00, 150.00, 550.00, 125.00, 0, 125.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', '53', 1, 
+		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', '53', 1, 
 								'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', 8540.00, 3000.00, 5540.00, 1250.00, 0, 1250.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', '', 1, 
+		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', '', 1, 
 								'Anesthesia', '', 1520.00, 250.00, 1270.00, 250.00, 0, 250.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 'K35.3', '', '', 
+		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 'K35.3', '', '', 
 								'Appendicitis with rupture', '', '', '', '', '', '', '', '', '', '', '')
 	";
 
@@ -798,7 +800,7 @@ function insert_sample_records($dbname) {
 							   particInsPlanId, particInsPlanName, doctype, tableName, recordId, noteText, comments) VALUES
 		('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
 		('1506595612', '', 0, '', 1, 'Jane', 2, 'John', '', '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
-		('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 1, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', '')
+		('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -828,7 +830,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
-    $sql = "SELECT uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
 				   userId, userName, participantId, participantName, particInsPlanName FROM docs WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
@@ -965,94 +967,70 @@ function get_home_page_texts($dbname) {
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $dbname);
+	$mysqli = new mysqli("localhost", "root", "hercules15", $dbname);
 // Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+	if($mysqli === false)
+		die("ERROR: Could not connect. " . $mysqli->connect_error);
+	if (empty($userId))	
+		die("ERROR: userId should be nonempty");
 
-    $snapshotRes = array();
-    $sql = "SELECT * FROM docs WHERE deleted = 0";
-    if (!empty($userId))
-        $sql .= " AND userId = " . $userId;
-    else
-        die("ERROR: userId should be nonempty");
-    if (!empty($participantId))
-        $sql .= " AND participantId = " . $participantId;
-    if (!empty($eobOnly))
-        $sql .= " AND docType = 'EOB'";
-    $res = $mysqli->query($sql);
-    $tot_uploaded = 0;
-    $tot_completed = 0;
-    $deduct = array();
-    $count = 0;
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            if (!empty($row['docStatusUpload']))
-                $tot_uploaded ++;
-            if (!empty($row['docStatusComplete']))
-                $tot_completed ++;
-            if (!isset($deduct[$row['participantId']]))
-                $deduct[$row['participantId']] = array();
-            if (!isset($deduct[$row['participantId']][$row['particInsPlanId']]))
-                $deduct[$row['participantId']][$row['particInsPlanId']] = array();
-            if (!isset($deduct[$row['participantId']][$row['particInsPlanId']]['docs'])) {
-                $deduct[$row['participantId']][$row['particInsPlanId']]['docs'] = array();
-                $count = 0;
-            }
-            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['docId'] = $row['id'];
-            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['timestamp'] = strtotime($row['issuedDate']);
-            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['paid'] = $row['indivDeductPaid'];
-            $count ++;
-        }
-        $snapshotRes['docs_uploded'] = $tot_uploaded;
-        $snapshotRes['docs_completed'] = $tot_completed;
-        $snapshotRes['docs_completion_perc'] = 0;
-        if ($tot_uploaded > 0)
-            $snapshotRes['docs_completion_perc'] = $tot_completed * 100 / $tot_uploaded;
+	$snapshotRes = array();
+	$sql = "SELECT count(id) as countid FROM docs WHERE deleted = 0 AND userId = ".$userId;
+	if (!empty($participantId))	
+		$sql .= " AND participantId = ".$participantId;
+	if (!empty($eobOnly))	
+		$sql .= " AND docType = 'EOB'";
+	$tot_uploaded = 0;
+	$res = $mysqli->query($sql);
+	if (!($res === false)) {
+		while ($row = $res->fetch_assoc()) {
+			$tot_uploaded = $row['countid'];
+			break;
+		}
+	}	
+	$res->close();
+	$sql .= " AND docStatusComplete <> ''";
+	$tot_completed = 0;
+	$res = $mysqli->query($sql);
+	if (!($res === false)) {
+		while ($row = $res->fetch_assoc()) {
+			$tot_completed = $row['countid'];
+			break;
+		}
+	}	
+	$res->close();
+	$snapshotRes['docs_uploded'] 			= $tot_uploaded;
+	$snapshotRes['docs_completed'] 			= $tot_completed;
+	$snapshotRes['docs_completion_perc'] 	= 0;
+	if ($tot_uploaded > 0)
+		$snapshotRes['docs_completion_perc'] = $tot_completed * 100 / $tot_uploaded;
 
-        foreach ($deduct as $key1 => $ded) {
-            foreach ($ded as $key2 => $plan) {
-                $timestamp = 0;
-                foreach ($plan['docs'] as $doc) {
-                    if ($timestamp > $doc['timestamp'])
-                        continue;
-                    $timestamp = $doc['timestamp'];
-                    $paid = $doc['paid'];
-                }
-                $deduct[$key1][$key2]['paid'] = $paid;
-            }
-        }
-        $snapshotRes['deduct'] = array();
-        $count = 0;
-        foreach ($deduct as $key1 => $ded) {
-            foreach ($ded as $key2 => $plan) {
-                $sql = "SELECT userId, userName, participantId, participantName, particInsPlanName, deductInNetworkIndiv 
-						FROM particinsplans 
-						WHERE deleted = 0";
-                $sql .= " AND userId = " . $userId;
-                $sql .= " AND participantId = " . $key1;
-                $sql .= " AND particInsPlanId = " . $key2;
-                $res1 = $mysqli->query($sql);
-                if (!($res1 === false)) {
-                    while ($row = $res1->fetch_assoc()) {
-                        $snapshotRes['deduct'][$count]['userId'] = $row['userId'];
-                        $snapshotRes['deduct'][$count]['participantId'] = $row['participantId'];
-                        $snapshotRes['deduct'][$count]['participantName'] = $row['participantName'];
-                        $snapshotRes['deduct'][$count]['particInsPlanName'] = $row['particInsPlanId'];
-                        $snapshotRes['deduct'][$count]['deductible'] = $row['deductInNetworkIndiv'];
-                        $snapshotRes['deduct'][$count]['paid'] = $plan['paid'];
-                        $snapshotRes['deduct'][$count]['deduct_paid_percent'] = 0;
-                        if ($snapshotRes['deduct'][$count]['deductible'] > 0)
-                            $snapshotRes['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['paid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
-                        $count ++;
-                        break;
-                    }
-                    $res1->close();
-                }
-            }
-        }
-        $res->close();
-    }
+	$sql = "SELECT max(docs.docTime), docs.id, docs.userId, docs.participantId, docs.participantName, docs.particInsPlanId, docs.particInsPlanName, docs.indivDeductPaid, 
+			particinsplans.deductInNetworkIndiv
+			FROM `docs` INNER JOIN particinsplans on docs.particInsPlanId = particinsplans.id
+			WHERE docs.docType = 'EOB' AND docs.indivDeductPaid is not null AND docs.userId = ".$userId;
+	if (!empty($participantId))	
+		$sql .= " AND docs.participantId = ".$participantId;
+	$sql .= " group by docs.participantId, docs.particInsPlanId"; 
+
+	$res = $mysqli->query($sql);
+	$snapshotRes['deduct'] = array();
+	$count = 0;
+	if (!($res === false)) {
+		while ($row = $res->fetch_assoc()) {
+			$snapshotRes['deduct'][$count]['userId'] 			= $row['userId'];
+			$snapshotRes['deduct'][$count]['participantId'] 	= $row['participantId'];
+			$snapshotRes['deduct'][$count]['participantName'] 	= $row['participantName'];
+			$snapshotRes['deduct'][$count]['particInsPlanId'] 	= $row['particInsPlanId'];
+			$snapshotRes['deduct'][$count]['particInsPlanName'] = $row['particInsPlanName'];
+			$snapshotRes['deduct'][$count]['deductible'] 		= $row['deductInNetworkIndiv'];
+			$snapshotRes['deduct'][$count]['deductPaid'] 		= $row['indivDeductPaid'];
+			if ($snapshotRes['deduct'][$count]['deductible'] > 0)
+				$snapshotRes['deduct'][$count]['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['deductPaid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
+			$count ++;
+		}	
+	}	
+	$res->close();
 
 // Close connection
     $mysqli->close();
@@ -1071,24 +1049,33 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
     if (empty($userId))
         die("ERROR: userId should be nonempty");
 
-    $sql = "SELECT * FROM notes INNER JOIN docs ON notes.userId = docs.userId";
+	$sql = "SELECT notes.uploadedTime, notes.updatedTime, notes.noteText, notes.participantId, notes.participantName, notes.particInsPlanId, notes.particInsPlanName, 
+				   notes.tableName, notes.recordId 
+			FROM notes INNER JOIN docs ON notes.userId = docs.userId";
     if (!empty($participantId))
         $sql .= " AND notes.participantId = docs.participantId";
     if (!empty($particInsPlanId))
         $sql .= " AND notes.particInsPlanId = docs.particInsPlanId";
-    $sql .= " WHERE notes.deleted = 0 AND docs.deleted = 0 AND docs.docStatusComplete = ''";
-    if (!empty($docId))
-        $sql .= " AND docs.id = " . $docId;
+	$sql .= " WHERE notes.deleted = 0 AND docs.deleted = 0 AND docs.docStatusComplete = ''";
+	if (!empty($docId))
+		$sql .= " AND notes.tableName = 'docs' AND notes.recordId = " . $docId;
+
     $res = $mysqli->query($sql);
     $noteRes = array();
     if (!($res === false)) {
         $count = 0;
         while ($row = $res->fetch_assoc()) {
-            $timestamp = $row['uploadedTime'];
-            if ($timestamp < $row['updatedTime'])
-                $timestamp = $row['updatedTime'];
-            $noteRes[$count]['timestamp'] = $timestamp;
-            $noteRes[$count]['noteText'] = $row['noteText'];
+			$noteRes[$count]['id'] 					= $row['id'];	
+			$timestamp 								= $row['uploadedTime'];
+			if ($timestamp < $row['updatedTime'])
+				$timestamp = $row['updatedTime'];
+			$noteRes[$count]['timestamp'] 			= $timestamp;	
+			$noteRes[$count]['noteText'] 			= $row['noteText'];	
+			$noteRes[$count]['participantId'] 		= $row['participantId'];	
+			$noteRes[$count]['participantName'] 	= $row['participantName'];	
+			$noteRes[$count]['particInsPlanId'] 	= $row['particInsPlanId'];	
+			$noteRes[$count]['particInsPlanName'] 	= $row['particInsPlanName'];	
+			$noteRes[$count]['docId'] 				= $row['recordId'];	
         }
         $res->close();
     }
@@ -1106,7 +1093,7 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
 
-    $sql = "SELECT DISTINCT participantId, participantName, particInsPlanName, primaryInsPlan FROM particinsplans WHERE deleted = 0";
+    $sql = "SELECT id, participantId, participantName, particInsurerName, particInsPlanName FROM particinsplans WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     else
@@ -1316,16 +1303,10 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
     }
     $res->close();
 
-    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, insurancePlanType, userId, userName, participantId, participantName, 
-										particInsPlanName, primaryInsPlan, startDate, endDate, monthlyPremium, 
-										deductInNetworkFamily, deductInNetworkIndiv, deductOutNetworkFamily, deductOutNetworkIndiv,
-										maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv, deductAppliedToOop) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $plan['particPlanType'] . "', '" . $userId . "', '" . $userName . "', '" . $participantName . "',
-									    '" . $participantName . "', '" . $plan['particInsPlanName'] . "', '" . $plan['primaryInsPlan'] . "', '" . $plan['startDate'] . "',
-										'" . $plan['endDate'] . "', '" . $plan['monthlyPremium'] . "', '" . $plan['deductInNetworkFamily'] . "', '" . $plan['deductInNetworkIndiv'] . "',
-										'" . $plan['deductOutNetworkFamily'] . "', '" . $plan['deductOutNetworkIndiv'] . "', '" . $plan['maxOopInNetworkFamily'] . "',
-										'" . $plan['maxOopInNetworkIndiv'] . "', '" . $plan['maxOopOutNetworkFamily'] . "', '" . $plan['maxOopOutNetworkIndiv'] . "',
-										'" . $plan['deductAppliedToOop'] . "')";
+    $sql = "INSERT INTO particinsplans (uploadedTime, updatedTime, deleted, userId, userName, participantId, participantName, 
+										particInsurerName, particInsPlanName) VALUES
+									   ('" . $uploadedTime . "', '', '', '" . $userId . "', '" . $userName . "', '" . $participantId . "', 
+									    '" . $participantName . "', '" . $plan['particInsurerName'] . "', '" . $plan['particInsPlanName'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
         die("ERROR: Could not execute $sql. " . $mysqli->error);
