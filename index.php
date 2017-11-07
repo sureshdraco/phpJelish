@@ -1,7 +1,8 @@
 <?php
 
 error_reporting(E_ERROR);
-
+define('DIR', 'http://domain.com/');
+define('SITEEMAIL', 'noreply@domain.com');
 // get the HTTP method, path and body of the request
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
@@ -49,7 +50,7 @@ function build_db_schema($dbname) {
 		userType VARCHAR(255) NULL,
 		username VARCHAR(255) NULL,
                 password VARCHAR(255) NULL,
-		userEmail VARCHAR(255) NULL,
+		email VARCHAR(255) NULL,
                 active varchar(255) NOT NULL,
                 resetToken varchar(255) DEFAULT NULL,
                 resetComplete varchar(3) DEFAULT 'No',
@@ -571,7 +572,7 @@ function insert_sample_records($dbname) {
 //	User Info Tables
 // 	====================
 //	Users
-    $sql = "INSERT INTO members (uploadedTime, updatedTime, deleted, userType, username, userEmail, comments) VALUES
+    $sql = "INSERT INTO members (uploadedTime, updatedTime, deleted, userType, username, email, comments) VALUES
 		('', '', 0, '', 'Jane', 'jane@ymail.com', ''),
 		('', '', 0, '', 'Mary123', 'mary123@xyz.com', '')
 	";
@@ -1646,9 +1647,6 @@ function login($dbname, $username, $password) {
             $error[] = 'A password must be entered';
         }
         if ($user->login($username, $password)) {
-//            $_SESSION['username'] = $username;
-            //          header('Location: memberpage.php');
-            exit;
         } else {
             $error[] = 'Wrong username or password or your account has not been activated.';
         }
@@ -1663,6 +1661,155 @@ function login($dbname, $username, $password) {
     echo json_encode($response);
 }
 
+function signup($dbname, $email, $username, $password, $confirmPassword) {
+    include('login/classes/user.php');
+    include('login/classes/phpmailer/mail.php');
+    try {
+        //create PDO connection
+        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $dbname, $GLOBALS['username'], $GLOBALS['password']);
+        //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
+        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    } catch (PDOException $e) {
+        //show error
+        echo '<p class="bg-danger">' . $e->getMessage() . '</p>';
+        exit;
+    }
+    $user = new User($db);
+    if (!isset($username))
+        $error[] = "Please fill out all fields";
+    if (!isset($email))
+        $error[] = "Please fill out all fields";
+    if (!isset($password))
+        $error[] = "Please fill out all fields";
+
+
+    //very basic validation
+    if (!$user->isValidUsername($username)) {
+        $error[] = 'Usernames must be at least 3 Alphanumeric characters';
+    } else {
+        $stmt = $db->prepare('SELECT username FROM members WHERE username = :username');
+        $stmt->execute(array(':username' => $username));
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!empty($row['username'])) {
+            $error[] = 'Username provided is already in use.';
+        }
+    }
+
+    if (strlen($password) < 3) {
+        $error[] = 'Password is too short.';
+    }
+
+    if (strlen($confirmPassword) < 3) {
+        $error[] = 'Confirm password is too short.';
+    }
+
+    if ($password != $confirmPassword) {
+        $error[] = 'Passwords do not match.';
+    }
+
+    //email validation
+    $decodedEmail = htmlspecialchars_decode($email, ENT_QUOTES);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error[] = 'Please enter a valid email address';
+    } else {
+        $stmt = $db->prepare('SELECT email FROM members WHERE email = :email');
+        $stmt->execute(array(':email' => $decodedEmail));
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!empty($row['email'])) {
+            $error[] = 'Email provided is already in use.';
+        }
+    }
+
+
+    //if no errors have been created carry on
+    if (!isset($error)) {
+
+        //hash the password
+        $hashedpassword = $user->password_hash($password, PASSWORD_BCRYPT);
+
+        //create the activasion code
+        $activasion = md5(uniqid(rand(), true));
+
+        try {
+
+            //insert into database with a prepared statement
+            $stmt = $db->prepare('INSERT INTO members (username,password,email,active) VALUES (:username, :password, :email, :active)');
+            $stmt->execute(array(
+                ':username' => $username,
+                ':password' => $hashedpassword,
+                ':email' => $decodedEmail,
+                ':active' => $activasion
+            ));
+            $id = $db->lastInsertId('memberID');
+
+            //send email
+            $to = $email;
+            $subject = "Registration Confirmation";
+            $body = "<p>Thank you for registering.</p>
+			<p>To activate your account, please click on this link: <a href='" . DIR . "index.php/activation?x=$id&y=$activasion'>" . DIR . "index.php/activation?x=$id&y=$activasion</a></p>
+			<p>Regards Site Admin</p>";
+            echo $body;
+
+            $mail = new Mail();
+            $mail->setFrom(SITEEMAIL);
+            $mail->addAddress($to);
+            $mail->subject($subject);
+            $mail->body($body);
+            $mail->send();
+        } catch (PDOException $e) {
+            $error[] = $e->getMessage();
+        }
+    }
+
+    if (empty($error)) {
+        $response = "success";
+    } else {
+        $response = $error;
+    }
+    echo json_encode($response);
+}
+
+function activation($dbname) {
+    include('login/classes/user.php');
+    include('login/classes/phpmailer/mail.php');
+    try {
+        //create PDO connection
+        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $dbname, $GLOBALS['username'], $GLOBALS['password']);
+        //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
+        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    } catch (PDOException $e) {
+        //show error
+        echo '<p class="bg-danger">' . $e->getMessage() . '</p>';
+        exit;
+    }
+    $user = new User($db);
+    //collect values from the url
+    $memberID = trim($_GET['x']);
+    $active = trim($_GET['y']);
+
+//if id is number and the active token is not empty carry on
+    if (is_numeric($memberID) && !empty($active)) {
+
+        //update users record set the active column to Yes where the memberID and active value match the ones provided in the array
+        $stmt = $db->prepare("UPDATE members SET active = 'Yes' WHERE memberID = :memberID AND active = :active");
+        $stmt->execute(array(
+            ':memberID' => $memberID,
+            ':active' => $active
+        ));
+
+        //if the row was updated redirect the user
+        if ($stmt->rowCount() == 1) {
+            echo "Your account has been activated.";
+        } else {
+            echo "Your account could not be activated.";
+        }
+    }
+}
+
 function main() {
 // main function
     global $cfg;
@@ -1674,6 +1821,10 @@ function main() {
         build_db_schema($cfg['dbname']);
     if ($action == "login")
         login($cfg['dbname'], $cfg['userName'], $cfg['password']);
+    if ($action == "activation")
+        activation($cfg['dbname']);
+    if ($action == "signup")
+        signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
     if ($action == "insert_sample_records")
         insert_sample_records($cfg['dbname']);
     if ($action == "get_doc_list")

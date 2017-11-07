@@ -259,3 +259,15 @@ Response
 	}
 ]
 
+=============== signup ================ 
+index.php/signup
+
+input e.g.:
+{"userName":"sureshdraco", "password":"signup123", "confirmPassword":"signup123", "email":"suresh.draco@gmail.com"}
+
+
+=============== login ================ 
+index.php/login
+
+input e.g.:
+{"userName":"sureshdraco", "password":"signup123"}
