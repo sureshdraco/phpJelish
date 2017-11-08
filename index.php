@@ -1,5 +1,4 @@
 <?php
-
 error_reporting(E_ERROR);
 define('DIR', 'http://domain.com/');
 define('SITEEMAIL', 'noreply@domain.com');
@@ -1813,10 +1812,15 @@ function activation($dbname) {
 function main() {
 // main function
     global $cfg;
-    $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
-    $action = $request[0];
+    $request = $_SERVER['REQUEST_URI'];
+    $request_parts = explode('/', $request);
+    $action = $request_parts[1];
+    echo "\n action:" .$action;
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
+    if($action == "test_gcloud_sql") {
+        include 'main.php';
+    }
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
     if ($action == "login")

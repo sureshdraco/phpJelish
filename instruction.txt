@@ -1,0 +1,13 @@
+install deployer 
+https://cloud.google.com/appengine/docs/standard/php/download#appengine_sdk
+
+
+-  create a sample or demo application in GoogleAppEngineLauncher
+
+- yaml file will be created
+
+- change the “application:” to be project id from google cloud “eg. bookstore-177621”
+
+- “Run” to test locally
+
+- deploy to the server
