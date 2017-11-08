@@ -28,8 +28,7 @@ CREATE TABLE IF NOT EXISTS greeting (
     PRIMARY KEY (id)
 )
 SCHEMA;
-
-  if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
+ if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
     $conn = mysqli_connect(null,
                            getenv('PRODUCTION_DB_USERNAME'),
                            getenv('PRODUCTION_DB_PASSWORD'),
@@ -37,11 +36,13 @@ SCHEMA;
                            null,
                            getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
     $db = getenv('PRODUCTION_DB_NAME');
+    echo "******production*****<br/>";
   } else {
     $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), 
                            getenv('DEVELOPMENT_DB_USERNAME'),
                            getenv('DEVELOPMENT_DB_PASSWORD'));
     $db = getenv('DEVELOPMENT_DB_NAME');
+    echo "******development****** <br/>";
   }
 var_dump($conn);
   if ($conn->connect_error) {

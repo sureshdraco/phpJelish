@@ -11,3 +11,8 @@ https://cloud.google.com/appengine/docs/standard/php/download#appengine_sdk
 - “Run” to test locally
 
 - deploy to the server
+
+
+
+
+https://1-dot-bookstore-177621.appspot.com/test_gcloud_sql

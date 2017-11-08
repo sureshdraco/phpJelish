@@ -9,10 +9,10 @@ handlers:
 
 env_variables:
  DEVELOPMENT_DB_HOST: ''
- DEVELOPMENT_DB_USERNAME: 'suresh'
+ DEVELOPMENT_DB_USERNAME: 'root'
  DEVELOPMENT_DB_PASSWORD: ''
  DEVELOPMENT_DB_NAME: 'glendor'
- PRODUCTION_CLOUD_SQL_INSTANCE: '/bookstore/guestbook:my-cloudsql-instance'
+ PRODUCTION_CLOUD_SQL_INSTANCE: '/cloudsql/bookstore-177621:us-central1:bookstore'
  PRODUCTION_DB_USERNAME: 'suresh'
  PRODUCTION_DB_PASSWORD: ''
  PRODUCTION_DB_NAME: 'glendor'

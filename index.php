@@ -1815,7 +1815,7 @@ function main() {
     $request = $_SERVER['REQUEST_URI'];
     $request_parts = explode('/', $request);
     $action = $request_parts[1];
-    echo "\n action:" .$action;
+    echo "\n action:" .$action . "\n";
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
     if($action == "test_gcloud_sql") {
