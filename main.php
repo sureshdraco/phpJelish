@@ -19,7 +19,7 @@ require_once 'google/appengine/api/users/User.php';
 
   use google\appengine\api\users\User;
   use google\appengine\api\users\UserService;
-
+$db = 'glendor';
   $greeting_schema = <<<SCHEMA
 CREATE TABLE IF NOT EXISTS greeting (
     id INT NOT NULL AUTO_INCREMENT,
@@ -35,13 +35,11 @@ SCHEMA;
                            null,
                            null,
                            getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
-    $db = getenv('PRODUCTION_DB_NAME');
     echo "******production*****<br/>";
   } else {
     $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), 
                            getenv('DEVELOPMENT_DB_USERNAME'),
                            getenv('DEVELOPMENT_DB_PASSWORD'));
-    $db = getenv('DEVELOPMENT_DB_NAME');
     echo "******development****** <br/>";
   }
 var_dump($conn);
@@ -57,63 +55,3 @@ var_dump($conn);
   if ($conn->select_db($db) === FALSE) {
     die("Could not select database: $conn->error [$conn->errno]");
   }
-
-  if ($conn->query($greeting_schema) === FALSE) {
-    die("Could not create tables: $conn->error [$conn->errno]");
-  }
-
-  $user = UserService::getCurrentUser();
-  if($user) {
-    $url = UserService::createLogoutURL('', "google.com");
-    $url_linktext = "Logout";
-    $author = $user->getNickname();
-  }
-  else {
-    $url = UserService::createLoginURL('');
-    $url_linktext = "Login";
-    $author = "";
-  }
-
-  if(isset($_POST['content'])) {
-    $stmt = $conn->prepare(
-        "INSERT INTO greeting (author, content) VALUES (?, ?)");
-    if ($stmt->bind_param('ss', $author, $_POST['content']) === FALSE) {
-      die("Could not bind prepared statement");
-    }
-
-    if ($stmt->execute() === FALSE) {
-      die("Could not execute prepared statement");
-    }
-   $stmt->close();
-   header("Location: /");
-   exit();
-  }
-?>
-<html>
-  <body>
-    <?php
-      $stmt = $conn->prepare(
-          "SELECT author, content FROM greeting ORDER BY id DESC LIMIT 10");
-      if ($stmt->execute() === FALSE) {
-        die("Could not execute prepared statement");
-      }
-      $stmt->bind_result($author, $content);
-      while ($stmt->fetch()) {
-          if($author) {
-            echo '<b>' . htmlentities($author) . '</b> wrote:';
-          } else {
-            echo 'An anonymous person wrote:';
-          }
-          echo '<blockquote>' . htmlentities($content) . '</blockquote>';
-      }
-      $stmt->close();
-    ?>
-
-    <form method="post" name="guestbook_form">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Sign Guestbook"></div>
-    </form>
-
-    <a href="<?php echo $url; ?>"><?php echo $url_linktext; ?></a>
-  </body>
-</html>

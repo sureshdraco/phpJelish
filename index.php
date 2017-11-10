@@ -1,4 +1,5 @@
 <?php
+
 error_reporting(E_ERROR);
 define('DIR', 'http://domain.com/');
 define('SITEEMAIL', 'noreply@domain.com');
@@ -6,33 +7,35 @@ define('SITEEMAIL', 'noreply@domain.com');
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
-$dbName = 'glendor';
-$hostName = 'localhost';
-$username = 'root';
-$password = '';
+
+if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
+    $dbName = 'glendor';
+    $hostName = '';
+    $username = 'suresh';
+    $password = '';
+} else {
+    $dbName = 'glendor';
+    $hostName = 'localhost';
+    $username = 'root';
+    $password = '';
+}
+
 $parameters = array();
 
 function build_db_schema($dbname) {
-    echo("Started build_db_schema...\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password)
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password']);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-// Attempt to delete database query execution
-    $sql = "DROP DATABASE " . $dbname;
-    if ($mysqli->query($sql) === true)
-        echo("Database deleted successfully\n");
-    else
-        echo ("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
-// Attempt to create database query execution
-    $sql = "CREATE DATABASE " . $dbname;
-    if ($mysqli->query($sql) === true)
-        echo("Database created successfully\n");
-    else
-        echo ("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
+    include 'main.php';
+    if ($conn->query("DROP DATABASE $dbname") === FALSE) {
+        die("Could not drop database: $conn->error [$conn->errno]");
+    }
+    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
+        die("Could not create database: $conn->error [$conn->errno]");
+    }
+
+    if ($conn->select_db($db) === FALSE) {
+        die("Could not select database: $conn->error [$conn->errno]");
+    }
+    $mysqli = $conn;
+
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -59,7 +62,7 @@ function build_db_schema($dbname) {
     if ($mysqli->query($sql) === true)
         echo("Table MEMBERS created successfully\n");
     else
-        echo("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
+        die("ERROR: unable to execute $sql. " . $mysqli->error . "\n");
 //	Participants
     $sql = "CREATE TABLE participants(
 		id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -561,38 +564,37 @@ function build_db_schema($dbname) {
 function insert_sample_records($dbname) {
     echo("Started insert_sample_records...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
 // Attempt insert query execution
 // 	====================
 //	User Info Tables
 // 	====================
 //	Users
     $sql = "INSERT INTO members (uploadedTime, updatedTime, deleted, userType, username, email, comments) VALUES
-		('', '', 0, '', 'Jane', 'jane@ymail.com', ''),
-		('', '', 0, '', 'Mary123', 'mary123@xyz.com', '')
+		(0, '', 0, '', 'Jane', 'jane@ymail.com', ''),
+		(0, '', 0, '', 'Mary123', 'mary123@xyz.com', '')
 	";
 
     if ($mysqli->query($sql) === true)
         echo "USERS records inserted successfully\n";
-    else
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+    else {
+        echo ("ERROR: Could not execute $sql. " . $mysqli->error);
+        die;
+    }
 
 //	Participants
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, username, participantName, gender, age, relatToUser, particPictFilename, comments) VALUES
-		('', '', 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
-		('', '', 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
-		('', '', 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
-		('', '', 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
-		('', '', 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
-		('', '', 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
-		('', '', 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
-		('', '', 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
-		('', '', 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
-		('', '', 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
+		(0, '', 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
+		(0, '', 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
+		(0, '', 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
+		(0, '', 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
+		(0, '', 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
+		(0, '', 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
+		(0, '', 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
+		(0, '', 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
+		(0, '', 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
+		(0, '', 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -603,9 +605,9 @@ function insert_sample_records($dbname) {
 
 //	Insurers
     $sql = "INSERT INTO insurers (uploadedTime, updatedTime, deleted, insurerType, insurerName, insurerAddr, insurerWebsite, insurerEmail, insurerPhone, insurerFax, comments) VALUES
-		('', '', 0, 'Medical', 'Cigna', '', 'www.cigna.com', '', '', '', ''),
-		('', '', 0, 'Medical', 'Regency', '', 'www.regency.com', '', '', '', ''),
-		('', '', 0, 'Dental', 'Delta Dental', '', 'https://www.deltadental.com', '', '', '', '')
+		(0, '', 0, 'Medical', 'Cigna', '', 'www.cigna.com', '', '', '', ''),
+		(0, '', 0, 'Medical', 'Regency', '', 'www.regency.com', '', '', '', ''),
+		(0, '', 0, 'Dental', 'Delta Dental', '', 'https://www.deltadental.com', '', '', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -616,12 +618,12 @@ function insert_sample_records($dbname) {
 
 //	InsurancePlans
     $sql = "INSERT INTO insuranceplans (uploadedTime, updatedTime, deleted, insurancePlanType, insurerId, insurerName, insurancePlanName, comments) VALUES
-		('', '', 0, 'PPO', 1, 'Cigna', 'Cigna PPO 5000', ''),
-		('', '', 0, 'EPO', 1, 'Cigna', 'Cigna EPO 2500', ''),
-		('', '', 0, 'EPO', 2, 'Regency', 'FocalNetwork Bronze 3500', ''),
-		('', '', 0, 'EPO', 2, 'Regency', 'EPO Gold 1000', ''),
-		('', '', 0, 'HMO', 2, 'Regency', 'HMO 2000', ''),
-		('', '', 0, 'PPO', 3, 'Delta Dental', 'PPO USA', '')
+		(0, '', 0, 'PPO', 1, 'Cigna', 'Cigna PPO 5000', ''),
+		(0, '', 0, 'EPO', 1, 'Cigna', 'Cigna EPO 2500', ''),
+		(0, '', 0, 'EPO', 2, 'Regency', 'FocalNetwork Bronze 3500', ''),
+		(0, '', 0, 'EPO', 2, 'Regency', 'EPO Gold 1000', ''),
+		(0, '', 0, 'HMO', 2, 'Regency', 'HMO 2000', ''),
+		(0, '', 0, 'PPO', 3, 'Delta Dental', 'PPO USA', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -635,20 +637,20 @@ function insert_sample_records($dbname) {
 										primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, deductInNetworkIndiv,
 										deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv,
 										deductAppliedToOop, comments) VALUES
-		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		('', '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
-		('', '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
+		(0, '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		(0, '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		(0, '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
+		(0, '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -784,7 +786,7 @@ function insert_sample_records($dbname) {
 
 //	CodePricess
     $sql = "INSERT INTO codeprices (uploadedTime, updatedTime, deleted, codeType, codeId, code, countyId, countyName, codePriceAve, codePriceStDev, comments) VALUES
-		('', '', 0, 'HCPCS', 1, '11750', 1, 'Cook County, IL', 220.13, '', ''),
+		(0, '', 0, 'HCPCS', 1, '11750', 1, 'Cook County, IL', 220.13, '', ''),
 		('', '', 0, 'HCPCS', 2, '93312', 1, 'Cook County, IL', 125.00, '', ''),
 		('', '', 0, 'HCPCS', 3, '72158', 1, 'Cook County, IL', 135.00, '', ''),
 		('', '', 0, 'HCPCS', 4, '44960', 1, 'Cook County, IL', '', '', ''),
@@ -827,7 +829,7 @@ function insert_sample_records($dbname) {
 
 function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname, "", "/cloudsql/bookstore-177621:us-central1:bookstore");
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -863,7 +865,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 
 function get_doc_details($dbname, $userId, $participantId, $docid) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname, "", "/cloudsql/bookstore-177621:us-central1:bookstore");
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -904,7 +906,7 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 
 function get_doc_items($dbname, $userId, $participantId, $docid) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
+    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname, "", "/cloudsql/bookstore-177621:us-central1:bookstore");
 // Check connection
     if ($mysqli === false)
         die("ERROR: Could not connect. " . $mysqli->connect_error);
@@ -1646,6 +1648,7 @@ function login($dbname, $username, $password) {
             $error[] = 'A password must be entered';
         }
         if ($user->login($username, $password)) {
+            
         } else {
             $error[] = 'Wrong username or password or your account has not been activated.';
         }
@@ -1815,12 +1818,9 @@ function main() {
     $request = $_SERVER['REQUEST_URI'];
     $request_parts = explode('/', $request);
     $action = $request_parts[1];
-    echo "\n action:" .$action . "\n";
+    echo "\n action:" . $action . "\n";
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
-    if($action == "test_gcloud_sql") {
-        include 'main.php';
-    }
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
     if ($action == "login")
