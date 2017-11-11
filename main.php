@@ -35,14 +35,11 @@ SCHEMA;
                            null,
                            null,
                            getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
-    echo "******production*****<br/>";
   } else {
     $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), 
                            getenv('DEVELOPMENT_DB_USERNAME'),
                            getenv('DEVELOPMENT_DB_PASSWORD'));
-    echo "******development****** <br/>";
   }
-var_dump($conn);
   if ($conn->connect_error) {
     die("Could not connect to database: $conn->connect_error " .
         "[$conn->connect_errno]");

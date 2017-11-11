@@ -8,18 +8,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
 
-if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
-    $dbName = 'glendor';
-    $hostName = '';
-    $username = 'suresh';
-    $password = '';
-} else {
-    $dbName = 'glendor';
-    $hostName = 'localhost';
-    $username = 'root';
-    $password = '';
-}
-
 $parameters = array();
 
 function build_db_schema($dbname) {
@@ -571,9 +559,9 @@ function insert_sample_records($dbname) {
 //	User Info Tables
 // 	====================
 //	Users
-    $sql = "INSERT INTO members (uploadedTime, updatedTime, deleted, userType, username, email, comments) VALUES
-		(0, '', 0, '', 'Jane', 'jane@ymail.com', ''),
-		(0, '', 0, '', 'Mary123', 'mary123@xyz.com', '')
+    $sql = "INSERT INTO members (uploadedTime, updatedTime, deleted, userType, username, email, comments, active) VALUES
+		(0, 0, 0, '', 'Jane', 'jane@ymail.com', '', ''),
+		(0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -585,16 +573,16 @@ function insert_sample_records($dbname) {
 
 //	Participants
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, username, participantName, gender, age, relatToUser, particPictFilename, comments) VALUES
-		(0, '', 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
-		(0, '', 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
-		(0, '', 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
-		(0, '', 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
-		(0, '', 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
-		(0, '', 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
-		(0, '', 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
-		(0, '', 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
-		(0, '', 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
-		(0, '', 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
+		(0, 0, 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
+		(0, 0, 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
+		(0, 0, 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
+		(0, 0, 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
+		(0, 0, 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
+		(0, 0, 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
+		(0, 0, 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
+		(0, 0, 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
+		(0, 0, 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
+		(0, 0, 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -605,9 +593,9 @@ function insert_sample_records($dbname) {
 
 //	Insurers
     $sql = "INSERT INTO insurers (uploadedTime, updatedTime, deleted, insurerType, insurerName, insurerAddr, insurerWebsite, insurerEmail, insurerPhone, insurerFax, comments) VALUES
-		(0, '', 0, 'Medical', 'Cigna', '', 'www.cigna.com', '', '', '', ''),
-		(0, '', 0, 'Medical', 'Regency', '', 'www.regency.com', '', '', '', ''),
-		(0, '', 0, 'Dental', 'Delta Dental', '', 'https://www.deltadental.com', '', '', '', '')
+		(0, 0, 0, 'Medical', 'Cigna', '', 'www.cigna.com', '', '', '', ''),
+		(0, 0, 0, 'Medical', 'Regency', '', 'www.regency.com', '', '', '', ''),
+		(0, 0, 0, 'Dental', 'Delta Dental', '', 'https://www.deltadental.com', '', '', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -618,12 +606,12 @@ function insert_sample_records($dbname) {
 
 //	InsurancePlans
     $sql = "INSERT INTO insuranceplans (uploadedTime, updatedTime, deleted, insurancePlanType, insurerId, insurerName, insurancePlanName, comments) VALUES
-		(0, '', 0, 'PPO', 1, 'Cigna', 'Cigna PPO 5000', ''),
-		(0, '', 0, 'EPO', 1, 'Cigna', 'Cigna EPO 2500', ''),
-		(0, '', 0, 'EPO', 2, 'Regency', 'FocalNetwork Bronze 3500', ''),
-		(0, '', 0, 'EPO', 2, 'Regency', 'EPO Gold 1000', ''),
-		(0, '', 0, 'HMO', 2, 'Regency', 'HMO 2000', ''),
-		(0, '', 0, 'PPO', 3, 'Delta Dental', 'PPO USA', '')
+		(0, 0, 0, 'PPO', 1, 'Cigna', 'Cigna PPO 5000', ''),
+		(0, 0, 0, 'EPO', 1, 'Cigna', 'Cigna EPO 2500', ''),
+		(0, 0, 0, 'EPO', 2, 'Regency', 'FocalNetwork Bronze 3500', ''),
+		(0, 0, 0, 'EPO', 2, 'Regency', 'EPO Gold 1000', ''),
+		(0, 0, 0, 'HMO', 2, 'Regency', 'HMO 2000', ''),
+		(0, 0, 0, 'PPO', 3, 'Delta Dental', 'PPO USA', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -637,20 +625,20 @@ function insert_sample_records($dbname) {
 										primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, deductInNetworkIndiv,
 										deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, maxOopOutNetworkFamily, maxOopOutNetworkIndiv,
 										deductAppliedToOop, comments) VALUES
-		(0, '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		(0, '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-		(0, '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
-		(0, '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
+		(0, 0, 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		(0, 0, 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+		(0, 0, 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 8, 'James', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
+		(0, 0, 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -662,13 +650,13 @@ function insert_sample_records($dbname) {
 //	Docs
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote,
 							  issuedDate, userId, username, participantId, participantName, particInsPlanName, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
-		('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', '06/23/17', 1, 'Jane', 1, 'Jane', '', '', '', 1, ''),
-		('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', '07/12/17', 1, 'Jane', 2, 'John', '', '', '', 2, ''),
-		('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', '05/28/17', 1, 'Jane', 2, 'John', '', '', '', 3, ''),
-		('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', '09/01/17', 1, 'Jane', 3, 'Brendan', '', '', '', 4, ''),
-		('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', '01/11/17', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
-		('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', '05/02/17', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', '234.34', '804.50', 6, ''),
-		('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', '10/01/17', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', '123.55', '314.00', 7, '')
+		('1505583600', 0, 0, 'Bill', 'uploaded', 'please review', '', 'present', '06/23/17', 1, 'Jane', 1, 'Jane', '', '', '', 1, ''),
+		('1506593612', 0, 0, 'Bill', 'uploaded', 'reviewed', '', 'present', '07/12/17', 1, 'Jane', 2, 'John', '', '', '', 2, ''),
+		('1506693612', 0, 0, 'Bill', 'uploaded', '', 'completed', '', '05/28/17', 1, 'Jane', 2, 'John', '', '', '', 3, ''),
+		('1504077878', 0, 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', '09/01/17', 1, 'Jane', 3, 'Brendan', '', '', '', 4, ''),
+		('1503297078', 0, 0, 'EOB', 'please rescan', '', '', '', '01/11/17', 2, 'Mary123', 7, 'Jake', 'EPO Gold 1000', '785.34', '1200.47', 5, ''),
+		('1504297078', 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', '05/02/17', 2, 'Mary123', 9, 'James Sr.', 'HMO 2000', '234.34', '804.50', 6, ''),
+		('1505297078', 0, 0, 'EOB', 'uploaded', 'reviewed', '', 'present', '10/01/17', 1, 'Jane', 4, 'Ashley', 'Cigna PPO 5000', '123.55', '314.00', 7, '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -681,10 +669,10 @@ function insert_sample_records($dbname) {
     $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, username, participantId, participantName, providerPNI, 
 										 particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty, providerAddr, 
 										 providerCountyId, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax, comments) VALUES
-		('1505583600', '', 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith, Walter S.', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-		('1506593612', '', 0, 'doctor', 1, 'Jane', 2, 'John', '', 'Jones, Allen', 'Jones', 'Allen', '', 'Cardiologist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-		('1506693612', '', 0, 'lab', 1, 'Jane', 2, 'John', '', 'Regent MRI', 'Regent MRI', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-		('1504077878', '', 0, 'hospital', 1, 'Jane', 3, 'Brendan', '', 'Cook County Hospital', 'Cook County Hospital', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', '')
+		('1505583600', 0, 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith, Walter S.', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+		('1506593612', 0, 0, 'doctor', 1, 'Jane', 2, 'John', '', 'Jones, Allen', 'Jones', 'Allen', '', 'Cardiologist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+		('1506693612', 0, 0, 'lab', 1, 'Jane', 2, 'John', '', 'Regent MRI', 'Regent MRI', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+		('1504077878', 0, 0, 'hospital', 1, 'Jane', 3, 'Brendan', '', 'Cook County Hospital', 'Cook County Hospital', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -697,18 +685,18 @@ function insert_sample_records($dbname) {
     $sql = "INSERT INTO docitems (uploadedTime, updatedTime, deleted, docItemType, docId, docType, userId, username, participantId, participantName, particInsPlanName, 
 								  providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled, 
 								  amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan, comments) VALUES
-		('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2, 
-								'Toenail Removal (Permanent)', '', 720.75, 220.75, 500.00, 275.00, 0, 178, '', '', '', ''),
-		('1506593612', '', 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '','', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', '', 1, 
-								'Echo transesophageal', '', 400.00, 150.00, 250.00, 25.00, 0, 0, '', '', '', ''),
-		('1506693612', '', 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', '', 1, 
-								'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', 700.00, 150.00, 550.00, 125.00, 0, 125.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', '53', 1, 
-								'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', 8540.00, 3000.00, 5540.00, 1250.00, 0, 1250.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', '', 1, 
-								'Anesthesia', '', 1520.00, 250.00, 1270.00, 250.00, 0, 250.00, '', '', '', ''),
-		('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 'K35.3', '', '', 
-								'Appendicitis with rupture', '', '', '', '', '', '', '', '', '', '', '')
+		('1505583600', 0, 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', 0, 2, 
+							'Toenail Removal (Permanent)', '', 720.75, 220.75, 500.00, 275.00, 0, 178, 0, '', '', ''),
+		('1506593612', 0, 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '','', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', 0, 1, 
+							'Echo transesophageal', '', 400.00, 150.00, 250.00, 25.00, 0, 0, 0, '', '', ''),
+		('1506693612', 0, 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', 0, 1, 
+								'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', 700.00, 150.00, 550.00, 125.00, 0, 125.00, 0, '', '', ''),
+		('1504077878', 0, 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', 53, 1, 
+							'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', 8540.00, 3000.00, 5540.00, 1250.00, 0, 1250.00, 0, '', '', ''),
+		('1504077878', 0, 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', 0, 1, 
+								'Anesthesia', '', 1520.00, 250.00, 1270.00, 250.00, 0, 250.00, 0, '', '', ''),
+		('1504077878', 0, 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 35.3, 0, 0, 
+								'Appendicitis with rupture', '', '', '', '', '', '', '', 0, '', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -719,13 +707,13 @@ function insert_sample_records($dbname) {
 
 //	Images
     $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, username, participantId, participantName, imageName, comments) VALUES
-		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
-		('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
-		('1506693612', '', 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
-		('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', ''),
-		('1503297078', '', 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', ''),
-		('1504297078', '', 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', ''),
-		('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', '')
+		('1505583600', 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
+		('1506593612', 0, 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
+		('1506693612', 0, 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
+		('1504077878', 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', ''),
+		('1503297078', 0, 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', ''),
+		('1504297078', 0, 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', ''),
+		('1505297078', 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -736,19 +724,19 @@ function insert_sample_records($dbname) {
 
 //	ImagePages
     $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, username, participantId, participantName, imageName, pageNum, imageFileName, comments) VALUES
-		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
-		('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
-		('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
-		('1506693612', '', 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', 1, '1_John_Bill_2_1', ''),
-		('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 1, '1_Brendan_Bill_1_1',''),
-		('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 2, '1_Brendan_Bill_1_2',''),
-		('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 3, '1_Brendan_Bill_1_3',''),
-		('1503297078', '', 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', 1, '2_Jake_EOB_1_1', ''),
-		('1504297078', '', 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', 1, '2_JamesSr_EOB_1_1', ''),
-		('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 1, '1_Ashley_Bill_1_1', ''),
-		('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 2, '1_Ashley_Bill_1_2', ''),
-		('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 3, '1_Ashley_Bill_1_3', ''),
-		('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 4, '1_Ashley_Bill_1_4', '')
+		('1505583600', 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
+		('1505583600', 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
+		('1506593612', 0, 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
+		('1506693612', 0, 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', 1, '1_John_Bill_2_1', ''),
+		('1504077878', 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 1, '1_Brendan_Bill_1_1',''),
+		('1504077878', 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 2, '1_Brendan_Bill_1_2',''),
+		('1504077878', 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 3, '1_Brendan_Bill_1_3',''),
+		('1503297078', 0, 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', 1, '2_Jake_EOB_1_1', ''),
+		('1504297078', 0, 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', 1, '2_JamesSr_EOB_1_1', ''),
+		('1505297078', 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 1, '1_Ashley_Bill_1_1', ''),
+		('1505297078', 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 2, '1_Ashley_Bill_1_2', ''),
+		('1505297078', 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 3, '1_Ashley_Bill_1_3', ''),
+		('1505297078', 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 4, '1_Ashley_Bill_1_4', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -759,12 +747,12 @@ function insert_sample_records($dbname) {
 
 //	Codes
     $sql = "INSERT INTO codes (uploadedTime, updatedTime, deleted, codeType, code, codeDescr, codeAltDescr, comments) VALUES
-		('1505583600', '', 0, 'HCPCS', '11750', 'Toenail Removal (Permanent)', '', ''),
-		('1506593612', '', 0, 'HCPCS', '93312', 'Echo transesophageal', '', ''),
-		('1506693612', '', 0, 'HCPCS', '72158', 'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', ''),
-		('1504077878', '', 0, 'HCPCS', '44960', 'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', ''),
-		('1504077878', '', 0, 'HCPCS', '00840', 'Anesthesia', '', ''),
-		('1504077878', '', 0, 'ICD10', 'K35.3', 'Appendicitis with rupture', '', '')
+		('1505583600', 0, 0, 'HCPCS', '11750', 'Toenail Removal (Permanent)', '', ''),
+		('1506593612', 0, 0, 'HCPCS', '93312', 'Echo transesophageal', '', ''),
+		('1506693612', 0, 0, 'HCPCS', '72158', 'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', ''),
+		('1504077878', 0, 0, 'HCPCS', '44960', 'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', ''),
+		('1504077878', 0, 0, 'HCPCS', '00840', 'Anesthesia', '', ''),
+		('1504077878', 0, 0, 'ICD10', 35.3, 'Appendicitis with rupture', '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -786,11 +774,11 @@ function insert_sample_records($dbname) {
 
 //	CodePricess
     $sql = "INSERT INTO codeprices (uploadedTime, updatedTime, deleted, codeType, codeId, code, countyId, countyName, codePriceAve, codePriceStDev, comments) VALUES
-		(0, '', 0, 'HCPCS', 1, '11750', 1, 'Cook County, IL', 220.13, '', ''),
-		('', '', 0, 'HCPCS', 2, '93312', 1, 'Cook County, IL', 125.00, '', ''),
-		('', '', 0, 'HCPCS', 3, '72158', 1, 'Cook County, IL', 135.00, '', ''),
-		('', '', 0, 'HCPCS', 4, '44960', 1, 'Cook County, IL', '', '', ''),
-		('', '', 0, 'HCPCS', 5, '00840', 1, 'Cook County, IL', 512.34, '', '')
+		(0, 0, 0, 'HCPCS', 1, '11750', 1, 'Cook County, IL', 220.13, '', ''),
+		(0, 0, 0, 'HCPCS', 2, '93312', 1, 'Cook County, IL', 125.00, '', ''),
+		(0, 0, 0, 'HCPCS', 3, '72158', 1, 'Cook County, IL', 135.00, '', ''),
+		(0, 0, 0, 'HCPCS', 4, '44960', 1, 'Cook County, IL', '', '', ''),
+		(0, 0, 0, 'HCPCS', 5, '00840', 1, 'Cook County, IL', 512.34, '', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -802,9 +790,9 @@ function insert_sample_records($dbname) {
 //	Notes
     $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, username, participantId, participantName, 
 							   particInsPlanId, particInsPlanName, doctype, tableName, recordId, noteText, comments) VALUES
-		('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
-		('1506595612', '', 0, '', 1, 'Jane', 2, 'John', '', '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
-		('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 1, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', '')
+		('1505584600', 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
+		('1506595612', 0, 0, '', 1, 'Jane', 2, 'John', 0, '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
+		('1505298078', 0, 0, '', 1, 'Jane', 4, 'Ashley', 1, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -814,8 +802,8 @@ function insert_sample_records($dbname) {
 
 //	HomepageTexts
     $sql = "INSERT INTO homepagetexts (uploadedTime, updatedTime, deleted, textType, textTitle, textBody, comments) VALUES
-		('1505584600', '', '', '', 'Main Intro', 'Glendor app helps you ...', ''),
-		('1505584600', '', '', '', 'Privacy Note', 'BlaBlaBla ...', '')
+		('1505584600', 0, 0, '', 'Main Intro', 'Glendor app helps you ...', ''),
+		('1505584600', 0, 0, '', 'Privacy Note', 'BlaBlaBla ...', '')
 	";
 
     if ($mysqli->query($sql) === true)
@@ -828,12 +816,8 @@ function insert_sample_records($dbname) {
 }
 
 function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname, "", "/cloudsql/bookstore-177621:us-central1:bookstore");
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
 				   userId, username, participantId, participantName, particInsPlanName FROM docs WHERE deleted = 0";
     if (!empty($userId))
@@ -864,12 +848,8 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 }
 
 function get_doc_details($dbname, $userId, $participantId, $docid) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname, "", "/cloudsql/bookstore-177621:us-central1:bookstore");
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docid;
     $res = $mysqli->query($sql);
     $type = "";
@@ -905,12 +885,8 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 }
 
 function get_doc_items($dbname, $userId, $participantId, $docid) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname, "", "/cloudsql/bookstore-177621:us-central1:bookstore");
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docid;
     $res = $mysqli->query($sql);
     $type = "";
@@ -948,12 +924,8 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
 }
 
 function get_home_page_texts($dbname) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT * FROM homepagetexts WHERE deleted = 0";
     $res = $mysqli->query($sql);
     $homePageTextRes = array();
@@ -970,12 +942,8 @@ function get_home_page_texts($dbname) {
 }
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $snapshotRes = array();
     $sql = "SELECT * FROM docs WHERE deleted = 0";
     if (!empty($userId))
@@ -1068,18 +1036,9 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
 }
 
 function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
-    if (empty($userId))
-        die("ERROR: userId should be nonempty");
-
-    $sql = "SELECT * FROM notes INNER JOIN docs ON notes.userId = docs.userId";
-    if (!empty($participantId))
-        $sql .= " AND notes.participantId = docs.participantId";
+    include 'main.php';
+    $mysqli = $conn;
+    $sql .= " AND notes.participantId = docs.participantId";
     if (!empty($particInsPlanId))
         $sql .= " AND notes.particInsPlanId = docs.particInsPlanId";
     $sql .= " WHERE notes.deleted = 0 AND docs.deleted = 0 AND docs.docStatusComplete = ''";
@@ -1106,12 +1065,8 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
 }
 
 function get_partic_ins_plans($dbname, $userId, $participantId) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT DISTINCT participantId, participantName, particInsPlanName, primaryInsPlan FROM particinsplans WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
@@ -1135,11 +1090,8 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
 }
 
 function get_participants($dbname, $userId, $participantId) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT id, participantName, gender, age, relatToUser FROM participants WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
@@ -1164,11 +1116,8 @@ function get_participants($dbname, $userId, $participantId) {
 }
 
 function get_particproviders($dbname, $userId, $participantId) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT id, uploadedTime, updatedTime, providerType, providerPNI, particProviderName, providerLastName, providerFirstName, providerMiddleName, 
 				   providerSpecialty, providerAddr, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax 
 				   FROM particproviders WHERE deleted = 0";
@@ -1195,11 +1144,8 @@ function get_particproviders($dbname, $userId, $participantId) {
 }
 
 function log_new_record($dbname, $tableName, $record) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     foreach ($record as $rkey => $r) {
         $sql = "INSERT INTO logs (uploadedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
 								 ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . $record['id'] . "', '" . $rkey . "', 'new', '', '" . $r . "')";
@@ -1212,11 +1158,8 @@ function log_new_record($dbname, $tableName, $record) {
 }
 
 function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     foreach ($recordNew as $rkey => $r) {
         $sql = "INSERT INTO logs (updatedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
 								 ('" . $recordNew['updatedTime'] . "', '" . $tableName . "', '" . $recordNew['id'] . "', '" . $rkey . "', 'mod', '" . $recordOld[$rkey] . "', '" . $r . "')";
@@ -1229,11 +1172,8 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 }
 
 function add_participant($dbname, $userId, $participantJSON) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     $uploadedTime = time();
     $sql = "SELECT memberId, username FROM members WHERE deleted = 0 AND memberId = " . $userId;
     $res = $mysqli->query($sql);
@@ -1270,11 +1210,8 @@ function add_participant($dbname, $userId, $participantJSON) {
 }
 
 function mod_participant($dbname, $userId, $participantId, $participantJSON) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
 
     $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
     $res = $mysqli->query($sql);
@@ -1305,11 +1242,8 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
 
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     $uploadedTime = time();
     $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
@@ -1351,12 +1285,8 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particInsPlanId;
     $res = $mysqli->query($sql);
     $particInsPlanOld = array();
@@ -1388,11 +1318,8 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
 function add_partic_provider($dbname, $userId, $participantId, $particProviderJSON) {
     $provider = $particProviderJSON;
 
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
+    include 'main.php';
+    $mysqli = $conn;
     $uploadedTime = time();
     if (empty($userId))
         die("ERROR: userId should be nonempty");
@@ -1434,12 +1361,8 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
     $provider = $particProviderJSON;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND id = " . $particProviderId;
     $res = $mysqli->query($sql);
     $particProviderOld = array();
@@ -1469,13 +1392,8 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
 
 function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     $note = $noteJSON;
-
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     if (empty($userId))
         die("ERROR: userId should be nonempty");
     if (empty($participantId))
@@ -1520,12 +1438,8 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
     $note = $noteJSON;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
     $res = $mysqli->query($sql);
     $noteOld = array();
@@ -1555,12 +1469,8 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
 
 function mod_doc($dbname, $userId, $docId, $docJSON) {
     $doc = $docJSON;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT * FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
     $docOld = array();
@@ -1590,12 +1500,8 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
 
 function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     $docitem = $docitemJSON;
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = new mysqli($GLOBALS['hostName'], $GLOBALS['username'], $GLOBALS['password'], $dbname);
-// Check connection
-    if ($mysqli === false)
-        die("ERROR: Could not connect. " . $mysqli->connect_error);
-
+    include 'main.php';
+    $mysqli = $conn;
     $sql = "SELECT * FROM docitems WHERE deleted = 0 AND id = " . $docitemId;
     $res = $mysqli->query($sql);
     $docitemOld = array();
@@ -1818,7 +1724,6 @@ function main() {
     $request = $_SERVER['REQUEST_URI'];
     $request_parts = explode('/', $request);
     $action = $request_parts[1];
-    echo "\n action:" . $action . "\n";
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
     if ($action == "build_db_schema")
