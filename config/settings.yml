@@ -1,0 +1,22 @@
+# Google credentials and configuration
+google_client_id:      "189907807642-94qbe7lag9nm5epdu5vem3b1t26v5js6.apps.googleusercontent.com"
+google_client_secret:  "0Ib-OoSIlDP7FO2GZ-1q3dcS"
+google_project_id:     "bookstore-177621"
+
+# options are "mysql", "postgres", "mongodb", or "datastore"
+bookshelf_backend: "mysql"
+
+# configure CloudSQL for MySQL or PostgreSQL backend
+cloudsql_connection_name: "bookstore-177621:us-central1:bookstore"
+cloudsql_database_name: "goldfinch"
+cloudsql_user: "goldfinch"
+cloudsql_password: "titan$2142"
+cloudsql_port: 3306
+
+# configure Mongo backend
+mongo_url: YOUR_MONGODB_URL
+mongo_database: YOUR_MONGO_DATABASE
+mongo_collection: YOUR_MONGO_COLLECTION
+
+pubsub_topic_name: book-created-or-updated
+pubsub_subscription_name: fill-book-details

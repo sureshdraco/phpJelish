@@ -1,18 +1,12 @@
-application: bookstore-177621
-version: 1
-runtime: php55
-api_version: 1
-
-handlers:
-- url: .*
-  script: index.php
+env: flex
+runtime: php
+runtime_config:
+  document_root: web
 
 env_variables:
- DEVELOPMENT_DB_HOST: ''
- DEVELOPMENT_DB_USERNAME: 'root'
- DEVELOPMENT_DB_PASSWORD: ''
- DEVELOPMENT_DB_NAME: 'glendor'
- PRODUCTION_CLOUD_SQL_INSTANCE: '/cloudsql/bookstore-177621:us-central1:bookstore'
- PRODUCTION_DB_USERNAME: 'suresh'
- PRODUCTION_DB_PASSWORD: ''
- PRODUCTION_DB_NAME: 'glendor'
+  NGINX_CONF_INCLUDE: config/nginx-app.conf
+  PHP_INI_OVERRIDE: config/php-app.ini
+# [END overrides]
+
+beta_settings:
+   cloud_sql_instances: bookstore-177621:us-central1:bookstore
