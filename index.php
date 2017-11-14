@@ -1174,9 +1174,43 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 }
 
 function get_image_upload_url() {
+    echo "getimageupload";
     $options = ['gs_bucket_name' => "bookstore-177621"];
-    $upload_url = CloudStorageTools::createUploadUrl('/upload/handler', $options);
-    echo $upload_url;
+    $errors = []; // Store all foreseen and unforseen errors here
+
+    $fileExtensions = ['jpeg', 'jpg', 'png']; // Get all the file extensions
+    $fileName = $_FILES['uploaded_files']['name'];
+    $fileSize = $_FILES['uploaded_files']['size'];
+    $fileTmpName = $_FILES['uploaded_files']['tmp_name'];
+    $fileType = $_FILES['uploaded_files']['type'];
+    $fileExtension = strtolower(end(explode('.', $fileName)));
+
+    if (isset($fileName)) {
+        if (!in_array($fileExtension, $fileExtensions)) {
+            $errors[] = "This file extension is not allowed. Please upload a JPEG or PNG file";
+        }
+
+        if ($fileSize > 2000000) {
+            $errors[] = "This file is more than 2MB. Sorry, it has to be less than or equal to 2MB";
+        }
+
+        if (empty($errors)) {
+            $fileContents = file_get_contents($fileTmpName);
+            $imageName = "gs://" . $options['gs_bucket_name'] . "/1.png";
+            $output = file_put_contents($imageName, $fileContents);
+            if (isset($output)) {
+                echo "The file " . basename($fileName) . " has been uploaded";
+                $publicUrl = CloudStorageTools::getPublicUrl($imageName, false);
+                echo "<br/>" . $publicUrl;
+            } else {
+                echo "An error occurred somewhere. Try again or contact the admin";
+            }
+        } else {
+            foreach ($errors as $error) {
+                echo $error . "These are the errors" . "\n";
+            }
+        }
+    }
 }
 
 function add_participant($dbname, $userId, $participantJSON) {
