@@ -19,7 +19,15 @@ require_once 'google/appengine/api/users/User.php';
 
   use google\appengine\api\users\User;
   use google\appengine\api\users\UserService;
-  $db = getenv('PRODUCTION_DB_NAME');
+$db = 'glendor';
+  $greeting_schema = <<<SCHEMA
+CREATE TABLE IF NOT EXISTS greeting (
+    id INT NOT NULL AUTO_INCREMENT,
+    author VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    PRIMARY KEY (id)
+)
+SCHEMA;
  if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
     $conn = mysqli_connect(null,
                            getenv('PRODUCTION_DB_USERNAME'),
