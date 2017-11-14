@@ -1,5 +1,7 @@
 <?php
 
+use google\appengine\api\cloud_storage\CloudStorageTools;
+
 error_reporting(E_ERROR);
 define('DIR', 'http://domain.com/');
 define('SITEEMAIL', 'noreply@domain.com');
@@ -1171,6 +1173,12 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
     $mysqli->close();
 }
 
+function get_image_upload_url() {
+    $options = ['gs_bucket_name' => "bookstore-177621"];
+    $upload_url = CloudStorageTools::createUploadUrl('/upload/handler', $options);
+    echo $upload_url;
+}
+
 function add_participant($dbname, $userId, $participantJSON) {
     include 'main.php';
     $mysqli = $conn;
@@ -1776,6 +1784,9 @@ function main() {
         mod_doc($cfg['dbname'], $cfg['userId'], $cfg['docId'], $cfg['docJSON']);
     if ($action == "mod_docitem")
         mod_docitem($cfg['dbname'], $cfg['userId'], $cfg['docitemId'], $cfg['docitemJSON']);
+    if ($action == "get_image_upload_url") {
+        get_image_upload_url();
+    }
 }
 
 $cfg = array();
