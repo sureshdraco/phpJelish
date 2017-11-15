@@ -1173,43 +1173,41 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
     $mysqli->close();
 }
 
-function get_image_upload_url() {
-    echo "getimageupload";
+function get_image_upload_url($userId) {
     $options = ['gs_bucket_name' => "bookstore-177621"];
-    $errors = []; // Store all foreseen and unforseen errors here
+    $image_upload_result["errors"] = []; // Store all foreseen and unforseen errors here
 
     $fileExtensions = ['jpeg', 'jpg', 'png']; // Get all the file extensions
-    $fileName = $_FILES['uploaded_files']['name'];
-    $fileSize = $_FILES['uploaded_files']['size'];
-    $fileTmpName = $_FILES['uploaded_files']['tmp_name'];
-    $fileType = $_FILES['uploaded_files']['type'];
+    $fileName = $_FILES['pic_file']['name'];
+    $fileSize = $_FILES['pic_file']['size'];
+    $fileTmpName = $_FILES['pic_file']['tmp_name'];
+    $fileType = $_FILES['pic_file']['type'];
     $fileExtension = strtolower(end(explode('.', $fileName)));
 
-    if (isset($fileName)) {
+    if (!empty($fileName)) {
         if (!in_array($fileExtension, $fileExtensions)) {
-            $errors[] = "This file extension is not allowed. Please upload a JPEG or PNG file";
+            $image_upload_result["errors"][] = "This file extension is not allowed. Please upload a JPEG or PNG file";
         }
 
         if ($fileSize > 2000000) {
-            $errors[] = "This file is more than 2MB. Sorry, it has to be less than or equal to 2MB";
+            $image_upload_result["errors"][] = "This file is more than 2MB. Sorry, it has to be less than or equal to 2MB";
         }
 
-        if (empty($errors)) {
+        if (empty($image_upload_result["errors"])) {
             $fileContents = file_get_contents($fileTmpName);
-            $imageName = "gs://" . $options['gs_bucket_name'] . "/1.png";
+            $date = new DateTime();
+            $imageName = "gs://" . $options['gs_bucket_name'] . "/" . $date->getTimestamp() . "_" . $userId . ".png";
             $output = file_put_contents($imageName, $fileContents);
             if (isset($output)) {
-                echo "The file " . basename($fileName) . " has been uploaded";
                 $publicUrl = CloudStorageTools::getPublicUrl($imageName, false);
-                echo "<br/>" . $publicUrl;
+                $image_upload_result["url"] = $publicUrl;
             } else {
-                echo "An error occurred somewhere. Try again or contact the admin";
-            }
-        } else {
-            foreach ($errors as $error) {
-                echo $error . "These are the errors" . "\n";
+                $image_upload_result["errors"][] = "An error uploading image.";
             }
         }
+        return $image_upload_result;
+    } else {
+        $image_upload_result["errors"][] = "No Pic file included";
     }
 }
 
@@ -1231,8 +1229,12 @@ function add_participant($dbname, $userId, $participantJSON) {
         echo "Empty participant!";
         return;
     }
+    $image_upload_result = get_image_upload_url($userId);
+    if (empty($image_upload_result["errors"])) {
+        $participantJSON['particPictFilename'] = $image_upload_result["url"];
+    }
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, username, participantName, gender, age, relatToUser, particPictFilename) VALUES
-		('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $username . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
+		(" . $uploadedTime . ", 0, 0, '', '" . $userId . "', '" . $username . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
 
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -1248,6 +1250,11 @@ function add_participant($dbname, $userId, $participantJSON) {
     $mysqli->close();
     log_new_record($dbname, $tableName, $record);
     $response["participantId"] = $participantId;
+    $response["particPictFilename"] = $participantJSON['particPictFilename'];
+
+    if (!empty($image_upload_result["errors"])) {
+        $response["errors"] = $image_upload_result["errors"];
+    }
     echo json_encode($response);
 }
 
@@ -1381,7 +1388,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
     }
     $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, username, participantId, participantName, 
 										 particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty) VALUES
-									   ('" . $uploadedTime . "', '', '', '" . $provider['providerType'] . "', '" . $userId . "', '" . $username . "', '" . $participantId . "',
+									   (" . $uploadedTime . ", 0, 0, '" . $provider['providerType'] . "', '" . $userId . "', '" . $username . "', '" . $participantId . "',
 									    '" . $participantName . "', '" . $provider['particProviderName'] . "', '" . $provider['providerLastName'] . "', 
 										'" . $provider['providerFirstName'] . "', '" . $provider['providerMiddleName'] . "', '" . $provider['providerSpecialty'] . "')";
     $res = $mysqli->query($sql);
@@ -1459,7 +1466,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 
     $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, username, participantId, participantName, particInsPlanName, 
 							   tableName, recordId, noteText) VALUES
-							   ('" . $uploadedTime . "', '', '', '" . $note['noteType'] . "', '" . $userId . "', '" . $username . "', '" . $participantId . "', '" . $participantName . "',
+							   (" . $uploadedTime . ", 0, 0, '" . $note['noteType'] . "', '" . $userId . "', '" . $username . "', '" . $participantId . "', '" . $participantName . "',
 							    '" . $note['particInsPlanName'] . "', '" . "docs" . "', '" . $docId . "', '" . $note['noteText'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -1797,7 +1804,7 @@ function main() {
     if ($action == "get_particproviders")
         get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "add_participant") {
-        "test:" . $cfg['participantJSON'];
+        $cfg = json_decode($_POST["participant"], true);
         add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
     }
     if ($action == "mod_participant")

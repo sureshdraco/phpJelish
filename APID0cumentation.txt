@@ -202,7 +202,7 @@ add_participant - Add participant
 URL: https://bookstore-177621.appspot.com/api/add_participant
 
 Method: POST
-Request Object: 'application/json'
+Request Object: 'multipart/form-data'
 
 Input
 {
@@ -219,7 +219,8 @@ Input
 					]
 }
 
-e.g.: {"userId":1, "participantJSON":{"participantName":"sureshkumar","gender":"M","age":"29","indivDeductPaid":"123421","relatToUser":"self"}}
+e.g.: participant =  {"userId":1, "participantJSON":{"participantName":"sureshkumar","gender":"M","age":"29","indivDeductPaid":"123421","relatToUser":"self"}}
+pic_file = image file to be uploaded
 
 Response 
 [
