@@ -136,7 +136,7 @@ Response Array
 ]
 
 example:
-{“userId”:1, “participantId”:1, “docId”:1}
+{"userId":1, "participantId":1, "docId":1}
 
 
 =============== get_home_page_texts ================ 

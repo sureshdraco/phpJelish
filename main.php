@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright 2007 Google Inc.
  *
@@ -15,33 +16,26 @@
  * limitations under the License.
  */
 require_once 'google/appengine/api/users/User.php';
-  require_once 'google/appengine/api/users/UserService.php';
+require_once 'google/appengine/api/users/UserService.php';
 
-  use google\appengine\api\users\User;
-  use google\appengine\api\users\UserService;
-  $db = getenv('DB_NAME');
+use google\appengine\api\users\User;
+use google\appengine\api\users\UserService;
 
- if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
-    $conn = mysqli_connect(null,
-                           getenv('PRODUCTION_DB_USERNAME'),
-                           getenv('PRODUCTION_DB_PASSWORD'),
-                           null,
-                           null,
-                           getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
-  } else {
-    $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), 
-                           getenv('DEVELOPMENT_DB_USERNAME'),
-                           getenv('DEVELOPMENT_DB_PASSWORD'));
-  }
-  if ($conn->connect_error) {
+$db = getenv('DB_NAME');
+
+if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
+    $conn = mysqli_connect(null, getenv('PRODUCTION_DB_USERNAME'), getenv('PRODUCTION_DB_PASSWORD'), null, null, getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
+} else {
+    $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), getenv('DEVELOPMENT_DB_USERNAME'), getenv('DEVELOPMENT_DB_PASSWORD'));
+}
+if ($conn->connect_error) {
     die("Could not connect to database: $conn->connect_error " .
-        "[$conn->connect_errno]");
-  }
-
-  if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
+            "[$conn->connect_errno]");
+}
+if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
     die("Could not create database: $conn->error [$conn->errno]");
-  }
+}
 
-  if ($conn->select_db($db) === FALSE) {
+if ($conn->select_db($db) === FALSE) {
     die("Could not select database: $conn->error [$conn->errno]");
-  }
+}

@@ -1094,7 +1094,7 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
 function get_participants($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
-    $sql = "SELECT id, participantName, gender, age, relatToUser FROM participants WHERE deleted = 0";
+    $sql = "SELECT id, participantName, gender, age, relatToUser, particPictFilename  FROM participants WHERE deleted = 0";
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     else
