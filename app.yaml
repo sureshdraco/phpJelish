@@ -1,4 +1,4 @@
-application: bookstore-177621
+application: gl20171109
 version: 1
 runtime: php55
 api_version: 1
@@ -8,11 +8,11 @@ handlers:
   script: index.php
 
 env_variables:
- DEVELOPMENT_DB_HOST: ''
+ DEVELOPMENT_DB_HOST: '/cloudsql/gl20171109:us-central1:glendor'
  DEVELOPMENT_DB_USERNAME: 'root'
- DEVELOPMENT_DB_PASSWORD: ''
- DEVELOPMENT_DB_NAME: 'glendor'
- PRODUCTION_CLOUD_SQL_INSTANCE: '/cloudsql/bookstore-177621:us-central1:bookstore'
- PRODUCTION_DB_USERNAME: 'suresh'
- PRODUCTION_DB_PASSWORD: ''
- PRODUCTION_DB_NAME: 'glendor'
+ DEVELOPMENT_DB_PASSWORD: 'titan$2142'
+ PRODUCTION_CLOUD_SQL_INSTANCE: '/cloudsql/gl20171109:us-central1:glendor'
+ PRODUCTION_DB_USERNAME: 'root'
+ PRODUCTION_DB_PASSWORD: 'titan$2142'
+ DB_NAME: 'glendor'
+ BUCKET_NAME: 'gl20171109'

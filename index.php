@@ -1174,16 +1174,14 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 }
 
 function get_image_upload_url($userId) {
-    $options = ['gs_bucket_name' => "bookstore-177621"];
+    $options = ['gs_bucket_name' => getenv('BUCKET_NAME')];
     $image_upload_result["errors"] = []; // Store all foreseen and unforseen errors here
-
     $fileExtensions = ['jpeg', 'jpg', 'png']; // Get all the file extensions
     $fileName = $_FILES['pic_file']['name'];
     $fileSize = $_FILES['pic_file']['size'];
     $fileTmpName = $_FILES['pic_file']['tmp_name'];
     $fileType = $_FILES['pic_file']['type'];
     $fileExtension = strtolower(end(explode('.', $fileName)));
-
     if (!empty($fileName)) {
         if (!in_array($fileExtension, $fileExtensions)) {
             $image_upload_result["errors"][] = "This file extension is not allowed. Please upload a JPEG or PNG file";
@@ -1229,7 +1227,9 @@ function add_participant($dbname, $userId, $participantJSON) {
         echo "Empty participant!";
         return;
     }
+
     $image_upload_result = get_image_upload_url($userId);
+
     if (empty($image_upload_result["errors"])) {
         $participantJSON['particPictFilename'] = $image_upload_result["url"];
     }
@@ -1805,7 +1805,7 @@ function main() {
         get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "add_participant") {
         $cfg = json_decode($_POST["participant"], true);
-        add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
+        add_participant($cfg['dbname'], $cfg['userId'], $cfg);
     }
     if ($action == "mod_participant")
         mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
