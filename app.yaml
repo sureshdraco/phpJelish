@@ -15,4 +15,4 @@ env_variables:
  PRODUCTION_DB_USERNAME: 'root'
  PRODUCTION_DB_PASSWORD: 'titan$2142'
  DB_NAME: 'glendor'
- BUCKET_NAME: 'gl20171109'
+ BUCKET_NAME: 'gl20171109.appspot.com'
