@@ -1767,6 +1767,19 @@ function activation($dbname) {
     }
 }
 
+function storageURL($bucket, $archivo) {
+    $expires = time() + 60;
+    $to_sign = ("GET\n\n\n" . $expires . "\n/" . $bucket . '/' . $archivo);
+    $pkeyid = openssl_get_privatekey("-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCSXZlN9prmbHNM\nPARPgQs+88VCjdkPjNavjCw6YCFf1aEhnC3GNgOqko/e2eq81j9axq2WQQw2XZLy\nFC7MT860s9JJe2wJmUPihPNXBS0r/VtTELW8CuJYQ2wVsawxzD2M2h5/orNe+9Xo\nzmq3dWdxHIZJUQaO1DaoO6bX1pjQVS81g/s5dBO0ieLJSjoO585eCPLTlKkLp0kN\n4FoIbl5XjaAsBMPCnJNRhtNFhg0NL5VErWUmTiY0GqR+rc/LEmKjii4LeXXt04Wr\nI0YXg+mT2QjyuxWSwhicmVf0s/eN9dNbeYh99MWRvyadsWh7P91WSw66GrBoCsu9\ngr144ad1AgMBAAECggEABQrsVM3jKn8AM5dEwcAif6Mn6mysgWHlj/ZDxtNtiu73\nW8r/nmWELPywMBTGHDFDIluX0EZXnJ7kM2rDwv5uksti5Re3Z5bsH7zbYmXiAh2Q\nPNV69r/RlQoQ9P1iVJ6NXKczfPZsI3YIjw+03bMR4t6BTOYu/uhA+tJVTk3ihW5A\niMwqywBF7L85e0HbKGMzjEqsOzVX6YdPuzvKFnB+WZH8UUQCiAzgT/paIHYzI8O6\nSci0r0AYIwo168ImaF/Y36HQRo/vbw+v3bAOwDN5ET01KUaXrsHGlLo8EzPEb9mF\nfLLSyWBwSxTqeVH+z9rqHFQ/BNrq9qBurQL2AjeCuQKBgQDNDP4TLdFTeuUe80A6\nzrRK9PDg4FQ1Ce9B6WUOVa59Vm8wJfg4hivae2H8mjE7fDmBq+MqyDFjdh9Of0BJ\n9UtkYRjrNcyiCRSm7+t4GZkYBvl1RFl5T4Z0Sokm1wD99Fri6I8yQnSppVypmjdX\nPFq+7+8HSJVCku+tgCK9kF8WCQKBgQC2u7kAbmGYRCvBIGMCVOY+VdKrkrhY2R0C\ncQ6m23PpH2QLyYFgHfFDD9XIYFT8lCQ00MV9EVUrhtmGbtVZe3YID0mPgwHo1zYi\nSn2C4wfSkzNptsfE+5KkBv1TxRVEpL/aZm1p90vg+6OIfDz9CLFw1iElX5h6da5c\n6pCIbxuBDQKBgGWA+v0Pf0Gt4mHR1IfH7yPz4JHROp4Ozut319iivX+6G8xf32JL\nuMWssjLTOW/S7LyuFAQHmbs8q/61q2NxE+Ma1bUJqsTDbf+9YHjRYyGrwi00qn4M\nyegjRYV+hTUxkxQkP06H6yxXeWlTt/VtIRbHuzGF0q1kA1WFyqzAHPHRAoGAJyZW\n/5GmlTHd0fW3YLOB1M8cYKgBmP+DKJfCVNtlnQedrqzQbCBeJUkKO3DwJGE01J/5\n/86r2bR9fEDYsuAxrI5h6z5dNV6OeZBODbHIZkQlWrvPVxOzGjNpKP5rjRZjCE6z\nmGVkO2KOadp8UpX/NjaaSWCO0YXPApc6uhBb6y0CgYB4KhMVXhthvfPxgkY0WhA4\nrGdZfxp9vdcpImKOyYeShZ1K/QgMZ1iyyHVtHuZrgLEOpJVrCvpPEJ5XsxHmBuGG\n7nIDj6oKavWHYeeaZ2lBd2zuare7kV1K6jPaJzm74GTbKMibFSi4+tDSYDTR+tAu\nSPSjd+UPCHA8l+Y5XcL+zA==
+-----END PRIVATE KEY-----");
+    if (!openssl_sign($to_sign, $signature, $pkeyid, 'sha256')) {
+        $signature = 'sinfirma';
+    } else {
+        $signature = urlencode(base64_encode($signature));
+    }
+    echo('https://' . $bucket . '.storage.googleapis.com/' . $archivo . '?GoogleAccessId=temp-access-media@gl20171109.iam.gserviceaccount.com&Expires=' . $expires . '&Signature=' . $signature);
+}
+
 function main() {
 // main function
     global $cfg;
@@ -1777,6 +1790,9 @@ function main() {
     $cfg['dbname'] = "glendor";
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
+    if ($action == "get_temp_url") {
+        storageURL(getenv('BUCKET_NAME'), $cfg['fileName']);
+    }
     if ($action == "login")
         login($cfg['dbname'], $cfg['userName'], $cfg['password']);
     if ($action == "activation")
