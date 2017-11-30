@@ -1112,7 +1112,7 @@ function get_participants($dbname, $userId, $participantId) {
     }
 // Close connection
     $mysqli->close();
-
+    $participantRes[0]["tempPicFileURL"] = storageURL(getenv('BUCKET_NAME'), $participantRes[0]["particPictFilename"]);
     $participantResJSON = json_encode($participantRes);
     echo $participantResJSON;
 }
@@ -1194,11 +1194,10 @@ function get_image_upload_url($userId) {
         if (empty($image_upload_result["errors"])) {
             $fileContents = file_get_contents($fileTmpName);
             $date = new DateTime();
-            $imageName = "gs://" . $options['gs_bucket_name'] . "/" . $date->getTimestamp() . "_" . $userId . ".png";
-            $output = file_put_contents($imageName, $fileContents);
+            $imageName = $date->getTimestamp() . "_" . $userId . ".png";
+            $output = file_put_contents("gs://" . $options['gs_bucket_name'] . "/" . $imageName, $fileContents);
             if (isset($output)) {
-                $publicUrl = CloudStorageTools::getPublicUrl($imageName, false);
-                $image_upload_result["url"] = $publicUrl;
+                $image_upload_result["file_name"] = $imageName;
             } else {
                 $image_upload_result["errors"][] = "An error uploading image.";
             }
@@ -1231,7 +1230,7 @@ function add_participant($dbname, $userId, $participantJSON) {
     $image_upload_result = get_image_upload_url($userId);
 
     if (empty($image_upload_result["errors"])) {
-        $participantJSON['particPictFilename'] = $image_upload_result["url"];
+        $participantJSON['particPictFilename'] = $image_upload_result["file_name"];
     }
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, username, participantName, gender, age, relatToUser, particPictFilename) VALUES
 		(" . $uploadedTime . ", 0, 0, '', '" . $userId . "', '" . $username . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
@@ -1251,7 +1250,7 @@ function add_participant($dbname, $userId, $participantJSON) {
     log_new_record($dbname, $tableName, $record);
     $response["participantId"] = $participantId;
     $response["particPictFilename"] = $participantJSON['particPictFilename'];
-
+    $response["tempPicFileURL"] = storageURL(getenv('BUCKET_NAME'), $response["particPictFilename"]);
     if (!empty($image_upload_result["errors"])) {
         $response["errors"] = $image_upload_result["errors"];
     }
@@ -1773,11 +1772,11 @@ function storageURL($bucket, $archivo) {
     $pkeyid = openssl_get_privatekey("-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCSXZlN9prmbHNM\nPARPgQs+88VCjdkPjNavjCw6YCFf1aEhnC3GNgOqko/e2eq81j9axq2WQQw2XZLy\nFC7MT860s9JJe2wJmUPihPNXBS0r/VtTELW8CuJYQ2wVsawxzD2M2h5/orNe+9Xo\nzmq3dWdxHIZJUQaO1DaoO6bX1pjQVS81g/s5dBO0ieLJSjoO585eCPLTlKkLp0kN\n4FoIbl5XjaAsBMPCnJNRhtNFhg0NL5VErWUmTiY0GqR+rc/LEmKjii4LeXXt04Wr\nI0YXg+mT2QjyuxWSwhicmVf0s/eN9dNbeYh99MWRvyadsWh7P91WSw66GrBoCsu9\ngr144ad1AgMBAAECggEABQrsVM3jKn8AM5dEwcAif6Mn6mysgWHlj/ZDxtNtiu73\nW8r/nmWELPywMBTGHDFDIluX0EZXnJ7kM2rDwv5uksti5Re3Z5bsH7zbYmXiAh2Q\nPNV69r/RlQoQ9P1iVJ6NXKczfPZsI3YIjw+03bMR4t6BTOYu/uhA+tJVTk3ihW5A\niMwqywBF7L85e0HbKGMzjEqsOzVX6YdPuzvKFnB+WZH8UUQCiAzgT/paIHYzI8O6\nSci0r0AYIwo168ImaF/Y36HQRo/vbw+v3bAOwDN5ET01KUaXrsHGlLo8EzPEb9mF\nfLLSyWBwSxTqeVH+z9rqHFQ/BNrq9qBurQL2AjeCuQKBgQDNDP4TLdFTeuUe80A6\nzrRK9PDg4FQ1Ce9B6WUOVa59Vm8wJfg4hivae2H8mjE7fDmBq+MqyDFjdh9Of0BJ\n9UtkYRjrNcyiCRSm7+t4GZkYBvl1RFl5T4Z0Sokm1wD99Fri6I8yQnSppVypmjdX\nPFq+7+8HSJVCku+tgCK9kF8WCQKBgQC2u7kAbmGYRCvBIGMCVOY+VdKrkrhY2R0C\ncQ6m23PpH2QLyYFgHfFDD9XIYFT8lCQ00MV9EVUrhtmGbtVZe3YID0mPgwHo1zYi\nSn2C4wfSkzNptsfE+5KkBv1TxRVEpL/aZm1p90vg+6OIfDz9CLFw1iElX5h6da5c\n6pCIbxuBDQKBgGWA+v0Pf0Gt4mHR1IfH7yPz4JHROp4Ozut319iivX+6G8xf32JL\nuMWssjLTOW/S7LyuFAQHmbs8q/61q2NxE+Ma1bUJqsTDbf+9YHjRYyGrwi00qn4M\nyegjRYV+hTUxkxQkP06H6yxXeWlTt/VtIRbHuzGF0q1kA1WFyqzAHPHRAoGAJyZW\n/5GmlTHd0fW3YLOB1M8cYKgBmP+DKJfCVNtlnQedrqzQbCBeJUkKO3DwJGE01J/5\n/86r2bR9fEDYsuAxrI5h6z5dNV6OeZBODbHIZkQlWrvPVxOzGjNpKP5rjRZjCE6z\nmGVkO2KOadp8UpX/NjaaSWCO0YXPApc6uhBb6y0CgYB4KhMVXhthvfPxgkY0WhA4\nrGdZfxp9vdcpImKOyYeShZ1K/QgMZ1iyyHVtHuZrgLEOpJVrCvpPEJ5XsxHmBuGG\n7nIDj6oKavWHYeeaZ2lBd2zuare7kV1K6jPaJzm74GTbKMibFSi4+tDSYDTR+tAu\nSPSjd+UPCHA8l+Y5XcL+zA==
 -----END PRIVATE KEY-----");
     if (!openssl_sign($to_sign, $signature, $pkeyid, 'sha256')) {
-        $signature = 'sinfirma';
+        return "";
     } else {
         $signature = urlencode(base64_encode($signature));
     }
-    echo('https://' . $bucket . '.storage.googleapis.com/' . $archivo . '?GoogleAccessId=temp-access-media@gl20171109.iam.gserviceaccount.com&Expires=' . $expires . '&Signature=' . $signature);
+    return 'https://' . $bucket . '.storage.googleapis.com/' . $archivo . '?GoogleAccessId=temp-access-media@gl20171109.iam.gserviceaccount.com&Expires=' . $expires . '&Signature=' . $signature;
 }
 
 function main() {
