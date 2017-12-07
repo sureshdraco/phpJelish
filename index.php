@@ -1192,9 +1192,7 @@ function get_image_upload_url($userId, $encodedPicFile) {
     $options = ['gs_bucket_name' => getenv('BUCKET_NAME')];
     $image_upload_result["errors"] = []; // Store all foreseen and unforseen errors here
 
-    if (!empty($fileName)) {
-
-        $fileContents = file_get_contents($fileTmpName);
+    if (!empty($encodedPicFile)) {
         $date = new DateTime();
         $imageName = $date->getTimestamp() . "_" . $userId . ".png";
         $image = base64_decode($encodedPicFile);
