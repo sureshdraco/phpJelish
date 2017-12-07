@@ -29,13 +29,13 @@ if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
     $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), getenv('DEVELOPMENT_DB_USERNAME'), getenv('DEVELOPMENT_DB_PASSWORD'));
 }
 if ($conn->connect_error) {
-    die("Could not connect to database: $conn->connect_error " .
+    returnError("Could not connect to database: $conn->connect_error " .
             "[$conn->connect_errno]");
 }
 if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
-    die("Could not create database: $conn->error [$conn->errno]");
+    returnError("Could not create database: $conn->error [$conn->errno]");
 }
 
 if ($conn->select_db($db) === FALSE) {
-    die("Could not select database: $conn->error [$conn->errno]");
+    returnError("Could not select database: $conn->error [$conn->errno]");
 }

@@ -12,6 +12,25 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 $parameters = array();
 
+function returnError($error) {
+    header("HTTP/1.0 500 Internal Server Error");
+    $errorObject = array();
+    $errorObject['errorMessage'] = $error;
+    $errorObject['returnMessage'] = 'ERROR';
+    $errorObject['returnStatus'] = '500';
+    echo json_encode($errorObject);
+    die;
+}
+
+function returnResponse($result) {
+    header("HTTP/1.0 200");
+    $resultObject = array();
+    $resultObject['data'] = $result;
+    $resultObject['returnMessage'] = 'OK';
+    $resultObject['returnStatus'] = '200';
+    echo json_encode($resultObject);
+}
+
 function build_db_schema($dbname) {
     include 'main.php';
     if ($conn->query("DROP DATABASE $dbname") === FALSE) {
@@ -845,13 +864,20 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 
 // Close connection
     $mysqli->close();
-    $docListResJSON = json_encode($docListRes);
-    echo $docListResJSON;
+    returnResponse($docListRes);
 }
 
 function get_doc_details($dbname, $userId, $participantId, $docid) {
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($participantId))
+        returnError('participantId is empty');
+    if (empty($docid))
+        returnError('docid is empty');
+
     $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docid;
     $res = $mysqli->query($sql);
     $type = "";
@@ -882,13 +908,19 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 
 // Close connection
     $mysqli->close();
-    $docsDetailResJSON = json_encode($docsDetailRes);
-    echo $docsDetailResJSON;
+    returnResponse($docsDetailRes);
 }
 
 function get_doc_items($dbname, $userId, $participantId, $docid) {
     include 'main.php';
     $mysqli = $conn;
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($participantId))
+        returnError('participantId is empty');
+    if (empty($docid))
+        returnError('docid is empty');
+
     $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docid;
     $res = $mysqli->query($sql);
     $type = "";
@@ -921,8 +953,7 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
 
 // Close connection
     $mysqli->close();
-    $docItemResJSON = json_encode($docItemRes);
-    echo $docItemResJSON;
+    returnResponse($docItemRes);
 }
 
 function get_home_page_texts($dbname) {
@@ -939,141 +970,128 @@ function get_home_page_texts($dbname) {
     }
 // Close connection
     $mysqli->close();
-    $homePageTextResJSON = json_encode($homePageTextRes);
-    echo $homePageTextResJSON;
+    returnResponse($homePageTextRes);
 }
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
     include 'main.php';
     $mysqli = $conn;
+    if (empty($userId))
+        returnError('userId is empty');
+
     $snapshotRes = array();
-    $sql = "SELECT * FROM docs WHERE deleted = 0";
-    if (!empty($userId))
-        $sql .= " AND userId = " . $userId;
-    else
-        die("ERROR: userId should be nonempty");
+    $sql = "SELECT count(id) as countid FROM docs WHERE deleted = 0 AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND participantId = " . $participantId;
     if (!empty($eobOnly))
         $sql .= " AND docType = 'EOB'";
-    $res = $mysqli->query($sql);
     $tot_uploaded = 0;
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        while ($row = $res->fetch_assoc()) {
+            $tot_uploaded = $row['countid'];
+            break;
+        }
+    }
+    $res->close();
+    $sql .= " AND docStatusComplete <> ''";
     $tot_completed = 0;
-    $deduct = array();
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        while ($row = $res->fetch_assoc()) {
+            $tot_completed = $row['countid'];
+            break;
+        }
+    }
+    $res->close();
+    $snapshotRes['docs_uploded'] = $tot_uploaded;
+    $snapshotRes['docs_completed'] = $tot_completed;
+    $snapshotRes['docs_completion_perc'] = 0;
+    if ($tot_uploaded > 0)
+        $snapshotRes['docs_completion_perc'] = $tot_completed * 100 / $tot_uploaded;
+
+    $sql = "SELECT max(docs.docTime), docs.id, docs.participantId, docs.participantName, docs.particInsPlanId, docs.particInsPlanName, docs.indivDeductPaid, 
+			particinsplans.deductInNetworkIndiv
+			FROM `docs` INNER JOIN particinsplans on docs.particInsPlanId = particinsplans.id
+			WHERE docs.docType = 'EOB' AND docs.indivDeductPaid is not null AND docs.userId = " . $userId;
+    if (!empty($participantId))
+        $sql .= " AND docs.participantId = " . $participantId;
+    $sql .= " group by docs.participantId, docs.particInsPlanId";
+
+    $res = $mysqli->query($sql);
+    $snapshotRes['deduct'] = array();
     $count = 0;
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            if (!empty($row['docStatusUpload']))
-                $tot_uploaded ++;
-            if (!empty($row['docStatusComplete']))
-                $tot_completed ++;
-            if (!isset($deduct[$row['participantId']]))
-                $deduct[$row['participantId']] = array();
-            if (!isset($deduct[$row['participantId']][$row['particInsPlanId']]))
-                $deduct[$row['participantId']][$row['particInsPlanId']] = array();
-            if (!isset($deduct[$row['participantId']][$row['particInsPlanId']]['docs'])) {
-                $deduct[$row['participantId']][$row['particInsPlanId']]['docs'] = array();
-                $count = 0;
-            }
-            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['docId'] = $row['id'];
-            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['timestamp'] = strtotime($row['issuedDate']);
-            $deduct[$row['participantId']][$row['particInsPlanId']]['docs'][$count]['paid'] = $row['indivDeductPaid'];
+            $snapshotRes['deduct'][$count]['participantId'] = $row['participantId'];
+            $snapshotRes['deduct'][$count]['participantName'] = $row['participantName'];
+            $snapshotRes['deduct'][$count]['particInsPlanId'] = $row['particInsPlanId'];
+            $snapshotRes['deduct'][$count]['particInsPlanName'] = $row['particInsPlanName'];
+            $snapshotRes['deduct'][$count]['deductible'] = $row['deductInNetworkIndiv'];
+            $snapshotRes['deduct'][$count]['deductPaid'] = $row['indivDeductPaid'];
+            if ($snapshotRes['deduct'][$count]['deductible'] > 0)
+                $snapshotRes['deduct'][$count]['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['deductPaid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
             $count ++;
         }
-        $snapshotRes['docs_uploded'] = $tot_uploaded;
-        $snapshotRes['docs_completed'] = $tot_completed;
-        $snapshotRes['docs_completion_perc'] = 0;
-        if ($tot_uploaded > 0)
-            $snapshotRes['docs_completion_perc'] = $tot_completed * 100 / $tot_uploaded;
-
-        foreach ($deduct as $key1 => $ded) {
-            foreach ($ded as $key2 => $plan) {
-                $timestamp = 0;
-                foreach ($plan['docs'] as $doc) {
-                    if ($timestamp > $doc['timestamp'])
-                        continue;
-                    $timestamp = $doc['timestamp'];
-                    $paid = $doc['paid'];
-                }
-                $deduct[$key1][$key2]['paid'] = $paid;
-            }
-        }
-        $snapshotRes['deduct'] = array();
-        $count = 0;
-        foreach ($deduct as $key1 => $ded) {
-            foreach ($ded as $key2 => $plan) {
-                $sql = "SELECT userId, username, participantId, participantName, particInsPlanName, deductInNetworkIndiv 
-						FROM particinsplans 
-						WHERE deleted = 0";
-                $sql .= " AND userId = " . $userId;
-                $sql .= " AND participantId = " . $key1;
-                $sql .= " AND particInsPlanId = " . $key2;
-                $res1 = $mysqli->query($sql);
-                if (!($res1 === false)) {
-                    while ($row = $res1->fetch_assoc()) {
-                        $snapshotRes['deduct'][$count]['userId'] = $row['userId'];
-                        $snapshotRes['deduct'][$count]['participantId'] = $row['participantId'];
-                        $snapshotRes['deduct'][$count]['participantName'] = $row['participantName'];
-                        $snapshotRes['deduct'][$count]['particInsPlanName'] = $row['particInsPlanId'];
-                        $snapshotRes['deduct'][$count]['deductible'] = $row['deductInNetworkIndiv'];
-                        $snapshotRes['deduct'][$count]['paid'] = $plan['paid'];
-                        $snapshotRes['deduct'][$count]['deduct_paid_percent'] = 0;
-                        if ($snapshotRes['deduct'][$count]['deductible'] > 0)
-                            $snapshotRes['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['paid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
-                        $count ++;
-                        break;
-                    }
-                    $res1->close();
-                }
-            }
-        }
-        $res->close();
     }
+    $res->close();
 
 // Close connection
     $mysqli->close();
-
-    $snapshotResJSON = json_encode($snapshotRes);
-    echo $snapshotResJSON;
+    returnResponse($snapshotRes);
 }
 
 function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
     include 'main.php';
     $mysqli = $conn;
-    $sql .= " AND notes.participantId = docs.participantId";
+    if (empty($userId))
+        returnError('userId is empty');
+
+    $sql = "SELECT notes.uploadedTime, notes.updatedTime, notes.noteText, notes.participantId, notes.participantName, notes.particInsPlanId, notes.particInsPlanName, 
+				   notes.tableName, notes.recordId 
+			FROM notes INNER JOIN docs ON notes.userId = docs.userId";
+    if (!empty($participantId))
+        $sql .= " AND notes.participantId = docs.participantId";
     if (!empty($particInsPlanId))
         $sql .= " AND notes.particInsPlanId = docs.particInsPlanId";
     $sql .= " WHERE notes.deleted = 0 AND docs.deleted = 0 AND docs.docStatusComplete = ''";
     if (!empty($docId))
-        $sql .= " AND docs.id = " . $docId;
+        $sql .= " AND notes.tableName = 'docs' AND notes.recordId = " . $docId;
+
     $res = $mysqli->query($sql);
     $noteRes = array();
     if (!($res === false)) {
         $count = 0;
         while ($row = $res->fetch_assoc()) {
+            $noteRes[$count]['id'] = $row['id'];
             $timestamp = $row['uploadedTime'];
             if ($timestamp < $row['updatedTime'])
                 $timestamp = $row['updatedTime'];
             $noteRes[$count]['timestamp'] = $timestamp;
             $noteRes[$count]['noteText'] = $row['noteText'];
+            $noteRes[$count]['participantId'] = $row['participantId'];
+            $noteRes[$count]['participantName'] = $row['participantName'];
+            $noteRes[$count]['particInsPlanId'] = $row['particInsPlanId'];
+            $noteRes[$count]['particInsPlanName'] = $row['particInsPlanName'];
+            $noteRes[$count]['docId'] = $row['recordId'];
         }
         $res->close();
     }
 
 // Close connection
     $mysqli->close();
-    $noteResJSON = json_encode($noteRes);
-    echo $noteResJSON;
+    returnResponse($noteRes);
 }
 
 function get_partic_ins_plans($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
-    $sql = "SELECT DISTINCT participantId, participantName, particInsPlanName, primaryInsPlan FROM particinsplans WHERE deleted = 0";
-    if (!empty($userId))
-        $sql .= " AND userId = " . $userId;
-    else
-        die("ERROR: userId should be nonempty");
+
+    if (empty($userId))
+        returnError('userId is empty');
+
+    $sql = "SELECT id, participantId, participantName, particInsurerName, particInsPlanName FROM particinsplans WHERE deleted = 0";
+    $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND participantId = " . $participantId;
     $sql .= " ORDER BY participantId DESC";
@@ -1081,24 +1099,25 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
     $particInsPlanRes = array();
 
     while ($row = $res->fetch_assoc()) {
+        $row['userId'] = NULL;   // obscure userId
         $particInsPlanRes[] = $row;
     }
     $res->close();
 
 // Close connection
     $mysqli->close();
-    $particInsPlanResJSON = json_encode($particInsPlanRes);
-    echo $particInsPlanResJSON;
+    returnResponse($particInsPlanRes);
 }
 
 function get_participants($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
-    $sql = "SELECT id, participantName, gender, age, relatToUser, particPictFilename  FROM participants WHERE deleted = 0";
-    if (!empty($userId))
-        $sql .= " AND userId = " . $userId;
-    else
-        die("ERROR: userId should be nonempty");
+
+    if (empty($userId))
+        returnError('userId is empty');
+
+    $sql = "SELECT id, participantName, gender, age, relatToUser, particPictFilename FROM participants WHERE deleted = 0";
+    $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND id = " . $participantId;
     $sql .= " ORDER BY id ASC";
@@ -1112,21 +1131,19 @@ function get_participants($dbname, $userId, $participantId) {
     }
 // Close connection
     $mysqli->close();
-    $participantRes[0]["tempPicFileURL"] = storageURL(getenv('BUCKET_NAME'), $participantRes[0]["particPictFilename"]);
-    $participantResJSON = json_encode($participantRes);
-    echo $participantResJSON;
+    returnResponse($participantRes);
 }
 
 function get_particproviders($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
+    if (empty($userId))
+        returnError('userId is empty');
+
     $sql = "SELECT id, uploadedTime, updatedTime, providerType, providerPNI, particProviderName, providerLastName, providerFirstName, providerMiddleName, 
 				   providerSpecialty, providerAddr, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax 
 				   FROM particproviders WHERE deleted = 0";
-    if (!empty($userId))
-        $sql .= " AND userId = " . $userId;
-    else
-        die("ERROR: userId should be nonempty");
+    $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND id = " . $participantId;
     $sql .= " ORDER BY id ASC";
@@ -1140,9 +1157,7 @@ function get_particproviders($dbname, $userId, $participantId) {
     }
 // Close connection
     $mysqli->close();
-
-    $particProviderResJSON = json_encode($particProviderRes);
-    echo $particProviderResJSON;
+    returnResponse($particProviderRes);
 }
 
 function log_new_record($dbname, $tableName, $record) {
@@ -1153,7 +1168,7 @@ function log_new_record($dbname, $tableName, $record) {
 								 ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . $record['id'] . "', '" . $rkey . "', 'new', '', '" . $r . "')";
         $res = $mysqli->query($sql);
         if ($res === false)
-            die("ERROR: Could not execute $sql. " . $mysqli->error);
+            returnError("Sql error");
     }
 // Close connection
     $mysqli->close();
@@ -1167,40 +1182,27 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
 								 ('" . $recordNew['updatedTime'] . "', '" . $tableName . "', '" . $recordNew['id'] . "', '" . $rkey . "', 'mod', '" . $recordOld[$rkey] . "', '" . $r . "')";
         $res = $mysqli->query($sql);
         if ($res === false)
-            die("ERROR: Could not execute $sql. " . $mysqli->error);
+            returnError('Sql error');
     }
 // Close connection
     $mysqli->close();
 }
 
-function get_image_upload_url($userId) {
+function get_image_upload_url($userId, $encodedPicFile) {
     $options = ['gs_bucket_name' => getenv('BUCKET_NAME')];
     $image_upload_result["errors"] = []; // Store all foreseen and unforseen errors here
-    $fileExtensions = ['jpeg', 'jpg', 'png']; // Get all the file extensions
-    $fileName = $_FILES['pic_file']['name'];
-    $fileSize = $_FILES['pic_file']['size'];
-    $fileTmpName = $_FILES['pic_file']['tmp_name'];
-    $fileType = $_FILES['pic_file']['type'];
-    $fileExtension = strtolower(end(explode('.', $fileName)));
+
     if (!empty($fileName)) {
-        if (!in_array($fileExtension, $fileExtensions)) {
-            $image_upload_result["errors"][] = "This file extension is not allowed. Please upload a JPEG or PNG file";
-        }
 
-        if ($fileSize > 2000000) {
-            $image_upload_result["errors"][] = "This file is more than 2MB. Sorry, it has to be less than or equal to 2MB";
-        }
-
-        if (empty($image_upload_result["errors"])) {
-            $fileContents = file_get_contents($fileTmpName);
-            $date = new DateTime();
-            $imageName = $date->getTimestamp() . "_" . $userId . ".png";
-            $output = file_put_contents("gs://" . $options['gs_bucket_name'] . "/" . $imageName, $fileContents);
-            if (isset($output)) {
-                $image_upload_result["file_name"] = $imageName;
-            } else {
-                $image_upload_result["errors"][] = "An error uploading image.";
-            }
+        $fileContents = file_get_contents($fileTmpName);
+        $date = new DateTime();
+        $imageName = $date->getTimestamp() . "_" . $userId . ".png";
+        $image = base64_decode($encodedPicFile);
+        $output = file_put_contents("gs://" . $options['gs_bucket_name'] . "/" . $imageName, $image);
+        if (isset($output)) {
+            $image_upload_result["file_name"] = $imageName;
+        } else {
+            $image_upload_result["errors"][] = "An error uploading image.";
         }
         return $image_upload_result;
     } else {
@@ -1211,6 +1213,12 @@ function get_image_upload_url($userId) {
 function add_participant($dbname, $userId, $participantJSON) {
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($participantJSON))
+        returnError('Empty participantJSON');
+
     $uploadedTime = time();
     $sql = "SELECT memberId, username FROM members WHERE deleted = 0 AND memberId = " . $userId;
     $res = $mysqli->query($sql);
@@ -1222,12 +1230,8 @@ function add_participant($dbname, $userId, $participantJSON) {
         }
         $res->close();
     }
-    if ($participantJSON === null) {
-        echo "Empty participant!";
-        return;
-    }
 
-    $image_upload_result = get_image_upload_url($userId);
+    $image_upload_result = get_image_upload_url($userId, $participantJSON["pic_file"]);
 
     if (empty($image_upload_result["errors"])) {
         $participantJSON['particPictFilename'] = $image_upload_result["file_name"];
@@ -1254,12 +1258,19 @@ function add_participant($dbname, $userId, $participantJSON) {
     if (!empty($image_upload_result["errors"])) {
         $response["errors"] = $image_upload_result["errors"];
     }
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function mod_participant($dbname, $userId, $participantId, $participantJSON) {
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($participantId))
+        returnError('participantId is empty');
+    if (empty($participantJSON))
+        returnError('participantJSON is empty');
 
     $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
     $res = $mysqli->query($sql);
@@ -1274,24 +1285,34 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
     $participantJSON['id'] = $participantId;
     $sql = "UPDATE participants SET";
     foreach ($participantJSON as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "userId"))
+            continue;
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $participantId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('Sql error');
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'participants', $participantJSON, $participantOld);
     $response["participantId"] = $participantId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($participantId))
+        returnError('participantId is empty');
+    if (empty($particInsPlanJSON))
+        returnError('particInsPlanJSON is empty');
+
     $uploadedTime = time();
     $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
@@ -1316,7 +1337,7 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 										'" . $plan['deductAppliedToOop'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('Sql error');
     $particinsplanId = $mysqli->insert_id;
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particinsplanId;
     $res = $mysqli->query($sql);
@@ -1328,13 +1349,21 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
     $mysqli->close();
     log_new_record($dbname, $tableName, $record);
     $response["particinsplanId"] = $particinsplanId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($particInsPlanId))
+        returnError('particInsPlanId is empty');
+    if (empty($particInsPlanJSON))
+        returnError('particInsPlanJSON is empty');
+
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particInsPlanId;
     $res = $mysqli->query($sql);
     $particInsPlanOld = array();
@@ -1355,12 +1384,12 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
     $sql = sprintf("%s WHERE userId = '%s' AND id = '%s'", $sql, $userId, $particInsPlanId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('Sql error');
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'particinsplans', $plan, $particInsPlanOld);
     $response["particInsPlanId"] = $particInsPlanId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function add_partic_provider($dbname, $userId, $participantId, $particProviderJSON) {
@@ -1368,11 +1397,14 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 
     include 'main.php';
     $mysqli = $conn;
-    $uploadedTime = time();
     if (empty($userId))
-        die("ERROR: userId should be nonempty");
+        returnError('userId is empty');
     if (empty($participantId))
-        die("ERROR: participantId should be nonempty");
+        returnError('participantId is empty');
+    if (empty($particProviderJSON))
+        returnError('particProviderJSON is empty ');
+
+    $uploadedTime = time();
     $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userId = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
     $username = "";
@@ -1392,7 +1424,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 										'" . $provider['providerFirstName'] . "', '" . $provider['providerMiddleName'] . "', '" . $provider['providerSpecialty'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('SQL error');
     $particProviderId = $mysqli->insert_id;
     $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND id = " . $particProviderId;
     $res = $mysqli->query($sql);
@@ -1404,13 +1436,21 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
     $mysqli->close();
     log_new_record($dbname, 'particproviders', $record);
     $response["particProviderId"] = $particProviderId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
     $provider = $particProviderJSON;
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($particProviderId))
+        returnError('particProviderId is empty');
+    if (empty($particProviderJSON))
+        returnError('particProviderJSON is empty');
+
     $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND id = " . $particProviderId;
     $res = $mysqli->query($sql);
     $particProviderOld = array();
@@ -1424,6 +1464,8 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
     $provider['id'] = $particProviderId;
     $sql = "UPDATE particproviders SET";
     foreach ($provider as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "userId"))
+            continue;
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
@@ -1435,7 +1477,7 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
     $mysqli->close();
     log_mod_record($dbname, 'particproviders', $provider, $particProviderOld);
     $response["particProviderId"] = $particProviderId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
@@ -1443,11 +1485,13 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     include 'main.php';
     $mysqli = $conn;
     if (empty($userId))
-        die("ERROR: userId should be nonempty");
+        returnError('userId is empty');
     if (empty($participantId))
-        die("ERROR: participantId should be nonempty");
+        returnError('participantId is empty');
     if (empty($docId))
-        die("ERROR: docId should be nonempty");
+        returnError('docId is empty');
+    if (empty($noteJSON))
+        returnError('noteJSON is empty');
 
     $uploadedTime = time();
     $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
@@ -1469,7 +1513,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 							    '" . $note['particInsPlanName'] . "', '" . "docs" . "', '" . $docId . "', '" . $note['noteText'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('Sql error');
     $noteId = $mysqli->insert_id;
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
     $res = $mysqli->query($sql);
@@ -1481,13 +1525,21 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     $mysqli->close();
     log_new_record($dbname, 'notes', $record);
     $response["noteId"] = $noteId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
     $note = $noteJSON;
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($noteId))
+        returnError('noteId is empty');
+    if (empty($noteJSON))
+        returnError('noteJSON is empty');
+
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
     $res = $mysqli->query($sql);
     $noteOld = array();
@@ -1501,24 +1553,34 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
     $note['id'] = $noteId;
     $sql = "UPDATE notes SET";
     foreach ($note as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "userId"))
+            continue;
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $noteId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('Sql error');
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'notes', $note, $noteOld);
     $response["noteId"] = $noteId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function mod_doc($dbname, $userId, $docId, $docJSON) {
     $doc = $docJSON;
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($docId))
+        returnError('docId is empty');
+    if (empty($docJSON))
+        returnError('docJSON is empty');
+
     $sql = "SELECT * FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
     $docOld = array();
@@ -1532,6 +1594,8 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
     $doc['id'] = $docId;
     $sql = "UPDATE docs SET";
     foreach ($doc as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "userId"))
+            continue;
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
@@ -1543,13 +1607,21 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
     $mysqli->close();
     log_mod_record($dbname, 'docs', $doc, $docOld);
     $response["docId"] = $docId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     $docitem = $docitemJSON;
     include 'main.php';
     $mysqli = $conn;
+
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($docitemId))
+        returnError('docItemId is empty');
+    if (empty($docitemJSON))
+        returnError('docitemJSON is empty');
+
     $sql = "SELECT * FROM docitems WHERE deleted = 0 AND id = " . $docitemId;
     $res = $mysqli->query($sql);
     $docitemOld = array();
@@ -1563,18 +1635,20 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     $docitem['id'] = $docitemId;
     $sql = "UPDATE docitems SET";
     foreach ($docitem as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "userId"))
+            continue;
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docitemId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        die("ERROR: Could not execute $sql. " . $mysqli->error);
+        returnError('Sql error');
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docitems', $docitem, $docitemOld);
     $response["docitemId"] = $docitemId;
-    echo json_encode($response);
+    returnResponse($response);
 }
 
 function login($dbname, $username, $password) {
@@ -1818,10 +1892,8 @@ function main() {
         get_participants($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "get_particproviders")
         get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
-    if ($action == "add_participant") {
-        $cfg = json_decode($_POST["participant"], true);
-        add_participant($cfg['dbname'], $cfg['userId'], $cfg);
-    }
+    if ($action == "add_participant")
+        add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
     if ($action == "mod_participant")
         mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
     if ($action == "add_partic_ins_plan")
