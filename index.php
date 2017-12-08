@@ -867,7 +867,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
     returnResponse($docListRes);
 }
 
-function get_doc_details($dbname, $userId, $participantId, $docid) {
+function get_doc_details($dbname, $userId, $participantId, $docId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -875,10 +875,10 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
         returnError('userId is empty');
     if (empty($participantId))
         returnError('participantId is empty');
-    if (empty($docid))
-        returnError('docid is empty');
+    if (empty($docId))
+        returnError('docId is empty');
 
-    $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docid;
+    $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
     $type = "";
     if (!($res === false)) {
@@ -892,7 +892,7 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
 				   userId, username, participantId, participantName ";
 //	if (!strcasecmp ($type, "EOB"))
     $sql .= ", particInsPlanName, indivDeductPaid, familyDeductPaid ";
-    $sql .= ", imageId FROM docs WHERE deleted = 0 AND id = " . $docid;
+    $sql .= ", imageId FROM docs WHERE deleted = 0 AND id = " . $docId;
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
@@ -911,17 +911,17 @@ function get_doc_details($dbname, $userId, $participantId, $docid) {
     returnResponse($docsDetailRes);
 }
 
-function get_doc_items($dbname, $userId, $participantId, $docid) {
+function get_doc_items($dbname, $userId, $participantId, $docId) {
     include 'main.php';
     $mysqli = $conn;
     if (empty($userId))
         returnError('userId is empty');
     if (empty($participantId))
         returnError('participantId is empty');
-    if (empty($docid))
-        returnError('docid is empty');
+    if (empty($docId))
+        returnError('docId is empty');
 
-    $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docid;
+    $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
     $type = "";
     if (!($res === false)) {
@@ -937,7 +937,7 @@ function get_doc_items($dbname, $userId, $participantId, $docid) {
     $sql .= ", providerPNI, particProviderName, serviceDate, placeOfService, codeType, code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled ";
 //	if (!strcasecmp ($type, "EOB"))
     $sql .= ", amountExcluded, amountAllowed, coInsAmount, coPayAmount, particPaid, excluded, exclusionCode, exclusionExplan";
-    $sql .= " FROM docitems WHERE deleted = 0 AND docId = " . $docid;
+    $sql .= " FROM docitems WHERE deleted = 0 AND docId = " . $docId;
     if (!empty($userId))
         $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
@@ -1891,9 +1891,9 @@ function main() {
     if ($action == "get_doc_list")
         get_doc_list($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['dateFrom'], $cfg['dateTo']);
     if ($action == "get_doc_details")
-        get_doc_details($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docid']);
+        get_doc_details($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docId']);
     if ($action == "get_doc_items")
-        get_doc_items($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docid']);
+        get_doc_items($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docId']);
     if ($action == "get_home_page_texts")
         get_home_page_texts($cfg['dbname']);
     if ($action == "get_glendor_snapshot")
@@ -1967,20 +1967,20 @@ if ($cfg['action'] == "get_doc_details") {
     $cfg['dbname'] = $argv[2];
     $cfg['userId'] = $argv[3];
     $cfg['participantId'] = $argv[4];
-    $cfg['docid'] = $argv[5];
+    $cfg['docId'] = $argv[5];
     if ($argc != 6) {
         print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_doc_details <dbname> <userId> <participantId> <docid>");
+        die("Usage: php -f DBProc.php get_doc_details <dbname> <userId> <participantId> <docId>");
     }
 }
 if ($cfg['action'] == "get_doc_items") {
     $cfg['dbname'] = $argv[2];
     $cfg['userId'] = $argv[3];
     $cfg['participantId'] = $argv[4];
-    $cfg['docid'] = $argv[5];
+    $cfg['docId'] = $argv[5];
     if ($argc != 6) {
         print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_doc_items <dbname> <userId> <participantId> <docid>");
+        die("Usage: php -f DBProc.php get_doc_items <dbname> <userId> <participantId> <docId>");
     }
 }
 if ($cfg['action'] == "get_home_page_texts") {
