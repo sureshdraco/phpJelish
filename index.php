@@ -1204,10 +1204,6 @@ function get_image_upload_url($userId) {
             $image_upload_result["errors"][] = "This file extension is not allowed. Please upload a JPEG or PNG file";
         }
 
-        if ($fileSize > 2000000) {
-            $image_upload_result["errors"][] = "This file is more than 2MB. Sorry, it has to be less than or equal to 2MB";
-        }
-
         if (empty($image_upload_result["errors"])) {
             $fileContents = file_get_contents($fileTmpName);
             $date = new DateTime();
