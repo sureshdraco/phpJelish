@@ -1131,7 +1131,9 @@ function get_participants($dbname, $userId, $participantId) {
     }
 // Close connection
     $mysqli->close();
-    returnResponse($participantRes);
+    $participant = $participantRes[0];
+    $participant["particPictFilename"] = storageURL(getenv('BUCKET_NAME'), $participant["particPictFilename"]);
+    returnResponse($participant);
 }
 
 function get_particproviders($dbname, $userId, $participantId) {
@@ -1188,19 +1190,34 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
     $mysqli->close();
 }
 
-function get_image_upload_url($userId, $encodedPicFile) {
+function get_image_upload_url($userId) {
     $options = ['gs_bucket_name' => getenv('BUCKET_NAME')];
     $image_upload_result["errors"] = []; // Store all foreseen and unforseen errors here
+    $fileExtensions = ['jpeg', 'jpg', 'png']; // Get all the file extensions
+    $fileName = $_FILES['pic_file']['name'];
+    $fileSize = $_FILES['pic_file']['size'];
+    $fileTmpName = $_FILES['pic_file']['tmp_name'];
+    $fileType = $_FILES['pic_file']['type'];
+    $fileExtension = strtolower(end(explode('.', $fileName)));
+    if (!empty($fileName)) {
+        if (!in_array($fileExtension, $fileExtensions)) {
+            $image_upload_result["errors"][] = "This file extension is not allowed. Please upload a JPEG or PNG file";
+        }
 
-    if (!empty($encodedPicFile)) {
-        $date = new DateTime();
-        $imageName = $date->getTimestamp() . "_" . $userId . ".png";
-        $image = base64_decode($encodedPicFile);
-        $output = file_put_contents("gs://" . $options['gs_bucket_name'] . "/" . $imageName, $image);
-        if (isset($output)) {
-            $image_upload_result["file_name"] = $imageName;
-        } else {
-            $image_upload_result["errors"][] = "An error uploading image.";
+        if ($fileSize > 2000000) {
+            $image_upload_result["errors"][] = "This file is more than 2MB. Sorry, it has to be less than or equal to 2MB";
+        }
+
+        if (empty($image_upload_result["errors"])) {
+            $fileContents = file_get_contents($fileTmpName);
+            $date = new DateTime();
+            $imageName = $date->getTimestamp() . "_" . $userId . ".png";
+            $output = file_put_contents("gs://" . $options['gs_bucket_name'] . "/" . $imageName, $fileContents);
+            if (isset($output)) {
+                $image_upload_result["file_name"] = $imageName;
+            } else {
+                $image_upload_result["errors"][] = "An error uploading image.";
+            }
         }
         return $image_upload_result;
     } else {
@@ -1211,6 +1228,8 @@ function get_image_upload_url($userId, $encodedPicFile) {
 function add_participant($dbname, $userId, $participantJSON) {
     include 'main.php';
     $mysqli = $conn;
+    var_dump($participantJSON);
+    echo($participantJSON[0]['participantName']);
 
     if (empty($userId))
         returnError('userId is empty');
@@ -1839,9 +1858,11 @@ function activation($dbname) {
 }
 
 function storageURL($bucket, $archivo) {
-    $expires = time() + 60;
+    $expires = time() + 120;
     $to_sign = ("GET\n\n\n" . $expires . "\n/" . $bucket . '/' . $archivo);
-    $pkeyid = openssl_get_privatekey("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCedcpTYZ+Xg33F\n1VVZnDJEEV2FctlArPNpQc2Z4Sb99jD9uXeroo0JxMPqv1IophTtJQl01IoaOF9m\nA6rX981EBW4q+yw8xROx+CzXJ9YZbBLoTnUiV/6GwMqPRCEUoECu7LpEi95xMI49\nz2kMmCMo1SHGPxd6NKEBbxfmOHvR8L190rCjjU+0dzkKz6p1fNznx1jiT/CrvXDF\npZNloes3hEA0qIdSl5tGILY7NuE68A080OktpKGABplZPh84aADw5nHwgILi1zQV\ng12KLg8y+PKYXojIr3BSE/CerzCUoLJ2tUfc6mwZYNccBlGGKacqWbxDUcytOYVK\nPqrBo9gjAgMBAAECggEAD7Y51IcWgVOny4KGqJCRqPW/CMKST65jO3ZeqFMoQAA1\n0ikEq6XXep0VZZfvOCaXmcsu79pvKYBmo45AVcYbuhKyKyk/TqgMqhXW5F9UneEW\n0tmMr1YVEulxn3KWHerYRXMljDLOLWAu8NDTARoVfZcvqe3xkJim6j+vGZDtZHh+\nPPkwmG7zg+HRlCWnKmqtBG19L0SdRHYk9cgzDLoAPG8U2pq3DY8XrTemxuFUtRzB\ny3TJxttoyA3gVbpPZbeq/iqjFvIQ72HFrBQuR5XZZ8pVBVc7rWk0/L/+YN1lHkAD\nfkImFNpekq/8ekywEplb6RWcA8Ck7iJQm0i61G7GeQKBgQDK/rdXVHt3IUW60hC7\nxy3dnXc1dXyUUHoalx0z+SEpnUUXc26j5ksTEhnicSTLniFyzB55ZhVs6siFkG6G\nX99ia18YjoWKZ4WiA9hD3vg4ky2/VUNNj7iYIg6EqlbHZGSkWwcN/iwDxa0AXIDf\niSVflQFx6ckhSc5shdMM7o35XwKBgQDH1h9gVgt5TK2OF26FihQtqaFZC0pMY/QG\nVHbdN3d55LcjhQnzG4A5txMkf2lwx6q1sYrv+IVMwu5faGyPRYncGnNTfWbA7Jup\n3qoyIHpS7GOU6bM17xQbiDBptOVeZnAJKkNdNzdb0A1YzBkBmO1c5QeImJ6aBg6b\nNLVACH1jvQKBgHpZzo3fiM9ECbBR3u4fXmC+AVUCbEVEwGP4gwyJc1iOx08cLyqw\nqr1i4qEeiwwDUqvLpe6L/gv480W1yThK3uyGRPobJRhHzz7YzGgUI06OPzucm4VL\nQ/rGRDPoK4fg1dxOVVE0yri3U8/s8WxKUHFs8UMEo0riHn5ApvWbb41HAoGAavXa\n2W90uLon8vPrviJH5qDysXxvii+9v12aOZGkq2OV+rcMukiv+zRYVKK1xx2364RZ\n/1Of1ZRIjlyQLqdjwKGPtNJcG0sJjoSVyDrF/nh0XJIxz95lfs8ISqv+UOa3dNBg\nOhaB1OypGCw1/jriYWRdAeneikZPrxcpJFrm8mkCgYEAviuCrih8T0T6FiIbVKZZ\n5BLlk7nAs230kKrprqBZmUJ5Ln/uXNV/KOb7GkaZ1FyN3ZXozm6ZcjNQeqFuWAJJ\naMsT8rKwxNhP6xVnhHPPiBAF2dTPVoo62bKe+y1/PjjXVjrBTqLbedhdAyN8smQQ\nFof02xpwVoHHQQRv/rBfuuc=\n-----END PRIVATE KEY-----");
+    $pkeyid = openssl_get_privatekey("-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCSXZlN9prmbHNM\nPARPgQs+88VCjdkPjNavjCw6YCFf1aEhnC3GNgOqko/e2eq81j9axq2WQQw2XZLy\nFC7MT860s9JJe2wJmUPihPNXBS0r/VtTELW8CuJYQ2wVsawxzD2M2h5/orNe+9Xo\nzmq3dWdxHIZJUQaO1DaoO6bX1pjQVS81g/s5dBO0ieLJSjoO585eCPLTlKkLp0kN\n4FoIbl5XjaAsBMPCnJNRhtNFhg0NL5VErWUmTiY0GqR+rc/LEmKjii4LeXXt04Wr\nI0YXg+mT2QjyuxWSwhicmVf0s/eN9dNbeYh99MWRvyadsWh7P91WSw66GrBoCsu9\ngr144ad1AgMBAAECggEABQrsVM3jKn8AM5dEwcAif6Mn6mysgWHlj/ZDxtNtiu73\nW8r/nmWELPywMBTGHDFDIluX0EZXnJ7kM2rDwv5uksti5Re3Z5bsH7zbYmXiAh2Q\nPNV69r/RlQoQ9P1iVJ6NXKczfPZsI3YIjw+03bMR4t6BTOYu/uhA+tJVTk3ihW5A\niMwqywBF7L85e0HbKGMzjEqsOzVX6YdPuzvKFnB+WZH8UUQCiAzgT/paIHYzI8O6\nSci0r0AYIwo168ImaF/Y36HQRo/vbw+v3bAOwDN5ET01KUaXrsHGlLo8EzPEb9mF\nfLLSyWBwSxTqeVH+z9rqHFQ/BNrq9qBurQL2AjeCuQKBgQDNDP4TLdFTeuUe80A6\nzrRK9PDg4FQ1Ce9B6WUOVa59Vm8wJfg4hivae2H8mjE7fDmBq+MqyDFjdh9Of0BJ\n9UtkYRjrNcyiCRSm7+t4GZkYBvl1RFl5T4Z0Sokm1wD99Fri6I8yQnSppVypmjdX\nPFq+7+8HSJVCku+tgCK9kF8WCQKBgQC2u7kAbmGYRCvBIGMCVOY+VdKrkrhY2R0C\ncQ6m23PpH2QLyYFgHfFDD9XIYFT8lCQ00MV9EVUrhtmGbtVZe3YID0mPgwHo1zYi\nSn2C4wfSkzNptsfE+5KkBv1TxRVEpL/aZm1p90vg+6OIfDz9CLFw1iElX5h6da5c\n6pCIbxuBDQKBgGWA+v0Pf0Gt4mHR1IfH7yPz4JHROp4Ozut319iivX+6G8xf32JL\nuMWssjLTOW/S7LyuFAQHmbs8q/61q2NxE+Ma1bUJqsTDbf+9YHjRYyGrwi00qn4M\nyegjRYV+hTUxkxQkP06H6yxXeWlTt/VtIRbHuzGF0q1kA1WFyqzAHPHRAoGAJyZW\n/5GmlTHd0fW3YLOB1M8cYKgBmP+DKJfCVNtlnQedrqzQbCBeJUkKO3DwJGE01J/5\n/86r2bR9fEDYsuAxrI5h6z5dNV6OeZBODbHIZkQlWrvPVxOzGjNpKP5rjRZjCE6z\nmGVkO2KOadp8UpX/NjaaSWCO0YXPApc6uhBb6y0CgYB4KhMVXhthvfPxgkY0WhA4\nrGdZfxp9vdcpImKOyYeShZ1K/QgMZ1iyyHVtHuZrgLEOpJVrCvpPEJ5XsxHmBuGG\n7nIDj6oKavWHYeeaZ2lBd2zuare7kV1K6jPaJzm74GTbKMibFSi4+tDSYDTR+tAu\nSPSjd+UPCHA8l+Y5XcL+zA==
+-----END PRIVATE KEY-----");
+
     if (!openssl_sign($to_sign, $signature, $pkeyid, 'sha256')) {
         return "";
     } else {
@@ -1889,8 +1910,10 @@ function main() {
         get_participants($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "get_particproviders")
         get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
-    if ($action == "add_participant")
-        add_participant($cfg['dbname'], $cfg['userId'], $cfg['participantJSON']);
+    if ($action == "add_participant") {
+        $cfg = json_decode($_POST["participant"], true);
+        add_participant($cfg['dbname'], $cfg['userId'], $cfg["participantJSON"]);
+    }
     if ($action == "mod_participant")
         mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
     if ($action == "add_partic_ins_plan")
