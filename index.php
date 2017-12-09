@@ -1033,8 +1033,8 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
                 $snapshotRes['deduct'][$count]['deduct_paid_percent'] = $snapshotRes['deduct'][$count]['deductPaid'] * 100 / $snapshotRes['deduct'][$count]['deductible'];
             $count ++;
         }
+        $res->close();
     }
-    $res->close();
 
 // Close connection
     $mysqli->close();
