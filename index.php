@@ -2704,5 +2704,211 @@ function main() {
         get_user_picture($cfg['dbname'], $cfg['userId']);
 }
 
+$cfg = array();
+$cfg['action'] = $argv[1];
+
+//echo ("came to DBProc\n");
+//die();
+if ($cfg['action'] == "build_db_schema") {
+    $cfg['dbname'] = $argv[2];
+    if ($argc != 3) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php build_db_schema <dbname>");
+    }
+}
+if ($cfg['action'] == "insert_sample_records") {
+    $cfg['dbname'] = $argv[2];
+    if ($argc != 3) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php insert_sample_records <dbname>");
+    }
+}
+if ($cfg['action'] == "get_doc_list") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['dateFrom'] = $argv[5];
+    $cfg['dateTo'] = $argv[6];
+    if ($argc != 7) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_doc_list <dbname> <userId> <participantId> <dateFrom> <dateTo>");
+    }
+}
+if ($cfg['action'] == "get_doc_details") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['docId'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_doc_details <dbname> <userId> <participantId> <docId>");
+    }
+}
+if ($cfg['action'] == "get_doc_items") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['docId'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_doc_items <dbname> <userId> <participantId> <docId>");
+    }
+}
+if ($cfg['action'] == "get_home_page_texts") {
+    $cfg['dbname'] = $argv[2];
+    if ($argc != 3) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_home_page_texts <dbname>");
+    }
+}
+if ($cfg['action'] == "get_glendor_snapshot") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['eobOnly'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_glendor_snapshot <dbname> <userId> <participantId> <eobOnly>");
+    }
+}
+if ($cfg['action'] == "get_notes") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['docId'] = $argv[4];
+    $cfg['participantId'] = $argv[5];
+    $cfg['particInsPlanId'] = $argv[6];
+    if ($argc != 7) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_notes <dbname> <userId> <docId> <participantId> <particInsPlanId>");
+    }
+}
+if ($cfg['action'] == "get_partic_ins_plans") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    if ($argc != 5) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_partic_ins_plans <dbname> <userId> <participantId>");
+    }
+}
+if ($cfg['action'] == "get_participants") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    if ($argc != 5) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_participants <dbname> <userId> <participantId>");
+    }
+}
+if ($cfg['action'] == "get_particproviders") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    if ($argc != 5) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php get_particproviders <dbname> <userId> <participantId>");
+    }
+}
+if ($cfg['action'] == "add_participant") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantJSON'] = $argv[4];
+    if ($argc != 5) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php add_participant <dbname> <userId> <participantJSON>");
+    }
+}
+if ($cfg['action'] == "mod_participant") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['participantJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_participant <dbname> <userId> <participantId> <participantJSON>");
+    }
+}
+if ($cfg['action'] == "add_partic_ins_plan") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['particInsPlanJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php add_partic_ins_plan <dbname> <userId> <participantId> <particInsPlanJSON>");
+    }
+}
+if ($cfg['action'] == "mod_partic_ins_plan") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['particInsPlanId'] = $argv[4];
+    $cfg['particInsPlanJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_partic_ins_plan <dbname> <userId> <particInsPlanId> <particInsPlanJSON>");
+    }
+}
+if ($cfg['action'] == "add_partic_provider") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['particProviderJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php add_partic_provider <dbname> <userId> <particInsPlanId> <particInsPlanJSON>");
+    }
+}
+if ($cfg['action'] == "mod_partic_provider") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['particProviderId'] = $argv[4];
+    $cfg['particProviderJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_partic_provider <dbname> <userId> <particProviderId> <particProviderJSON>");
+    }
+}
+if ($cfg['action'] == "add_note") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['participantId'] = $argv[4];
+    $cfg['docId'] = $argv[5];
+    $cfg['noteJSON'] = $argv[6];
+    if ($argc != 7) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php add_note <dbname> <userId> <docId> <noteJSON>");
+    }
+}
+if ($cfg['action'] == "mod_note") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['noteId'] = $argv[4];
+    $cfg['noteJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_note <dbname> <userId> <noteId> <noteJSON>");
+    }
+}
+if ($cfg['action'] == "mod_doc") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['docId'] = $argv[4];
+    $cfg['docJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_doc <dbname> <userId> <docId> <docJSON>");
+    }
+}
+if ($cfg['action'] == "mod_docitem") {
+    $cfg['dbname'] = $argv[2];
+    $cfg['userId'] = $argv[3];
+    $cfg['docitemId'] = $argv[4];
+    $cfg['docitemJSON'] = $argv[5];
+    if ($argc != 6) {
+        print ("DBProc\n");
+        die("Usage: php -f DBProc.php mod_docitem <dbname> <userId> <docitemId> <docitemJSON>");
+    }
+}
+
 main();
 ?>

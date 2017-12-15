@@ -8,10 +8,10 @@ handlers:
   script: index.php
 
 env_variables:
- DEVELOPMENT_DB_HOST: '/cloudsql/gl20171109:us-central1:glendor'
+ DEVELOPMENT_DB_HOST: '/cloudsql/gl20171109:us-central1:glendordb'
  DEVELOPMENT_DB_USERNAME: 'root'
  DEVELOPMENT_DB_PASSWORD: 'titan$2142'
- PRODUCTION_CLOUD_SQL_INSTANCE: '/cloudsql/gl20171109:us-central1:glendor'
+ PRODUCTION_CLOUD_SQL_INSTANCE: '/cloudsql/gl20171109:us-central1:glendordb'
  PRODUCTION_DB_USERNAME: 'root'
  PRODUCTION_DB_PASSWORD: 'titan$2142'
  DB_NAME: 'glendor'
