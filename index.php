@@ -931,7 +931,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
     $sql .= " AND uploadedTime >= " . $begsec . " AND uploadedTime <= " . $endsec;
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $docListRes = array();
     while ($row = $res->fetch_assoc()) {
         $docListRes[] = $row;
@@ -1272,7 +1272,7 @@ function log_new_record($dbname, $tableName, $record) {
                                  ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . $record['id'] . "', '" . $rkey . "', 'new', '', '" . $r . "')";
         $res = $mysqli->query($sql);
         if ($res === false)
-            returnError('Sql error');
+            returnError($mysqli->error);
     }
 // Close connection
     $mysqli->close();
@@ -1290,7 +1290,7 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
                                  ('" . $recordNew['updatedTime'] . "', '" . $tableName . "', '" . $recordNew['id'] . "', '" . $rkey . "', 'mod', '" . $recordOld[$rkey] . "', '" . $r . "')";
         $res = $mysqli->query($sql);
         if ($res === false)
-            returnError('Sql error');
+            returnError($mysqli->error);
     }
 // Close connection
     $mysqli->close();
@@ -1366,7 +1366,7 @@ function add_participant($dbname, $userId, $participantJSON) {
 
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $participantId = $mysqli->insert_id;
     $sql = "SELECT uploadedTime, updatedTime, deleted, particType, userName, participantName, gender, age, relatToUser, particPictFilename 
             FROM participants WHERE deleted = 0 AND id = " . $participantId;
@@ -1420,7 +1420,7 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
     $res = $mysqli->query($sql);
 //var_dump($sql);   
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'participants', $participantJSON, $participantOld);
@@ -1462,7 +1462,7 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
                                         '" . $participantName . "', '" . $plan['particInsurerName'] . "', '" . $plan['particInsPlanName'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $particinsplanId = $mysqli->insert_id;
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particinsplanId;
     $res = $mysqli->query($sql);
@@ -1514,7 +1514,7 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
     $sql = sprintf("%s WHERE userId = '%s' AND id = '%s'", $sql, $userId, $particInsPlanId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'particinsplans', $plan, $particInsPlanOld);
@@ -1606,7 +1606,7 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $particProviderId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'particproviders', $provider, $particProviderOld);
@@ -1647,7 +1647,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
                                 '" . $note['particInsPlanName'] . "', '" . "docs" . "', '" . $docId . "', '" . $note['noteText'] . "')";
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $noteId = $mysqli->insert_id;
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
     $res = $mysqli->query($sql);
@@ -1698,7 +1698,7 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $noteId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'notes', $note, $noteOld);
@@ -1742,7 +1742,7 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docs', $doc, $docOld);
@@ -1786,7 +1786,7 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docItemId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
 // Close connection
     $mysqli->close();
     log_mod_record($dbname, 'docitems', $docitem, $docitemOld);
@@ -1833,7 +1833,7 @@ function add_user($dbname, $userJSON) {
         ('" . $uploadedTime . "', '', '', '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $userJSON['userPassword'] . "', '', '')";
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $userId = $mysqli->insert_id;
     $sql = "SELECT * FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
     $res = $mysqli->query($sql);
@@ -1857,7 +1857,7 @@ function add_user($dbname, $userJSON) {
     $sql = "UPDATE users SET userExternalId = '" . $userExternalId . "' WHERE id = " . $userId;
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $mysqli->close();
     $record['userExternalId'] = $userExternalId;
     log_new_record($dbname, $tableName, $record);
@@ -1908,7 +1908,7 @@ function mod_user($dbname, $userId, $userJSON) {
     $sql = sprintf("%s WHERE id='%s'", $sql, $userId);
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $mysqli->close();
     log_mod_record($dbname, 'users', $userJSON, $userOld);
     $response["userId"] = $userId;
@@ -1934,7 +1934,7 @@ function get_user_id($dbname, $userJSON) {
             WHERE deleted = 0 AND userEmail = '" . $userJSON['userEmail'] . "' AND userPassword = '" . $userJSON['userPassword'] . "'";
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $userRes = array();
     while ($row = $res->fetch_assoc()) {
         $userRes = $row;
@@ -2051,7 +2051,7 @@ function add_doc_image($dbname, $userId, $participantId) {
     returnResponse($response);
 }
 
-function mod_doc_image($dbname, $userId, $docId, $imageJSON) {
+function mod_doc_image($dbname, $userId, $docId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -2061,10 +2061,6 @@ function mod_doc_image($dbname, $userId, $docId, $imageJSON) {
         returnError('userId is empty');
     if (empty($docId))
         returnError('docId is empty');
-    if (empty($imageJSON))
-        returnError('imageJSON is empty');
-    if (empty($imageJSON['image']))
-        returnError('imageJSON has empty image');
 
     $updatedTime = time();
     $sql = "SELECT imageFileName FROM docs WHERE deleted = 0 AND userid = '" . $userId . "' AND id = " . $docId;
@@ -2077,18 +2073,17 @@ function mod_doc_image($dbname, $userId, $docId, $imageJSON) {
         }
         $res->close();
     }
-    $sql = "UPDATE docs SET updatedTime = " . $updatedTime . " WHERE userId = '" . $userId . "' AND id = " . $docId;
+    $imageFileName = get_image_upload_url($userId);
+
+    $sql = "UPDATE docs SET updatedTime = " . $updatedTime . ", imageFileName = '" . $imageFileName . "' WHERE userId = '" . $userId . "' AND id = " . $docId;
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
-    $image = base64_decode($imageJSON['image']);
-    if (!empty($imageFileName))
-        file_put_contents($imageFileName, $image);
     $mysqli->close();
     $new['updatedTime'] = $updatedTime;
     $old['updatedTime'] = "";
     log_mod_record($dbname, 'docs', $new['updatedTime'], $old['updatedTime']);
-    $response["imageFileName"] = $imageFileName;
+    $response["imageFileName"] = storageURL($imageFileName);
     $response["docId"] = $docId;
     returnResponse($response);
 }
@@ -2117,14 +2112,7 @@ function get_doc_image($dbname, $userId, $docId) {
         $res->close();
     }
 
-    $image = "";
-    if (!empty($imageFileName))
-        $image = file_get_contents($imageFileName, $image);
-    $imageRes['imageFileName'] = $imageFileName;
-    $imageRes['image'] = base64_encode($image);
-
-//file_put_contents ("c:/__Glendor/UserImages/img1.json", json_encode($imageRes));  
-
+    $imageRes['imageFileName'] = storageURL($imageFileName);
     returnResponse($imageRes);
 }
 
@@ -2149,7 +2137,7 @@ function add_partic_picture($dbname, $userId, $participantId) {
     $sql = "UPDATE participants SET updatedTime = " . $updatedTime . ", particPictFilename = '" . $imageFileName . "' WHERE userId = '" . $userId . "' AND id = " . $participantId;
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
     $res = $mysqli->query($sql);
     while ($recordNew = $res->fetch_assoc()) {
@@ -2164,7 +2152,7 @@ function add_partic_picture($dbname, $userId, $participantId) {
     returnResponse($response);
 }
 
-function mod_partic_picture($dbname, $userId, $participantId, $imageJSON) {
+function mod_partic_picture($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -2174,10 +2162,6 @@ function mod_partic_picture($dbname, $userId, $participantId, $imageJSON) {
         returnError('userId is empty');
     if (empty($participantId))
         returnError('participantId is empty');
-    if (empty($imageJSON))
-        returnError('imageJSON is empty');
-    if (empty($imageJSON['image']))
-        returnError('imageJSON has empty image');
 
     $updatedTime = time();
     $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
@@ -2196,23 +2180,22 @@ function mod_partic_picture($dbname, $userId, $participantId, $imageJSON) {
         }
         $res->close();
     }
-    $sql = "UPDATE participants SET updatedTime = " . $updatedTime . " WHERE userId = '" . $userId . "' AND id = " . $participantId;
+    $imageFileName = get_image_upload_url($userId);
+
+    $sql = "UPDATE participants SET updatedTime = " . $updatedTime . ", particPictFilename = '" . $imageFileName . "' WHERE userId = '" . $userId . "' AND id = " . $participantId;
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
     $res = $mysqli->query($sql);
     while ($recordNew = $res->fetch_assoc()) {
         break;
     }
     $res->close();
-    $image = base64_decode($imageJSON['image']);
-    if (!empty($imageFileName))
-        file_put_contents($imageFileName, $image);
     $mysqli->close();
     log_mod_record($dbname, 'participants', $recordNew, $recordOld);
     $response["participantId"] = $participantId;
-    $response["particPictFilename"] = $imageFileName;
+    $response["particPictFilename"] = storageURL($imageFileName);
     returnResponse($response);
 }
 
@@ -2263,7 +2246,7 @@ function add_user_picture($dbname, $userId) {
     $sql = "UPDATE users SET updatedTime = " . $updatedTime . ", userPictFilename = '" . $imageFileName . "' WHERE id = '" . $userId . "'";
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $sql = "SELECT * FROM users WHERE deleted = 0 AND id = " . $userId;
     $res = $mysqli->query($sql);
     while ($recordNew = $res->fetch_assoc()) {
@@ -2277,7 +2260,7 @@ function add_user_picture($dbname, $userId) {
     returnResponse($response);
 }
 
-function mod_user_picture($dbname, $userId, $imageJSON) {
+function mod_user_picture($dbname, $userId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -2285,10 +2268,6 @@ function mod_user_picture($dbname, $userId, $imageJSON) {
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
-    if (empty($imageJSON))
-        returnError('imageJSON is empty');
-    if (empty($imageJSON['image']))
-        returnError('imageJSON has empty image');
 
     $updatedTime = time();
     $sql = "SELECT * FROM users WHERE deleted = 0 AND id = " . $userId;
@@ -2307,23 +2286,22 @@ function mod_user_picture($dbname, $userId, $imageJSON) {
         }
         $res->close();
     }
-    $sql = "UPDATE users SET updatedTime = " . $updatedTime . " WHERE id = '" . $userId . "'";
+    $imageFileName = get_image_upload_url($userId);
+
+    $sql = "UPDATE users SET updatedTime = " . $updatedTime . ", userPictFilename = '" . $imageFileName . "' WHERE id = '" . $userId . "'";
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $sql = "SELECT * FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
     $res = $mysqli->query($sql);
     while ($recordNew = $res->fetch_assoc()) {
         break;
     }
     $res->close();
-    $image = base64_decode($imageJSON['image']);
-    if (!empty($imageFileName))
-        file_put_contents($imageFileName, $image);
     $mysqli->close();
     log_mod_record($dbname, 'users', $recordNew, $recordOld);
     $response["userId"] = $userId;
-    $response["userPictFilename"] = $imageFileName;
+    $response["userPictFilename"] = storageURL($imageFileName);
     returnResponse($response);
 }
 
@@ -2346,15 +2324,7 @@ function get_user_picture($dbname, $userId) {
         }
         $res->close();
     }
-
-    $image = "";
-    if (!empty($imageFileName))
-        $image = file_get_contents($imageFileName, $image);
-    $imageRes['image'] = base64_encode($image);
-    $imageRes["userPictFilename"] = $imageFileName;
-
-//file_put_contents ("c:/__Glendor/UserImages/img1.json", json_encode($imageRes));  
-
+    $imageRes["userPictFilename"] = storageURL($imageFileName);
     returnResponse($imageRes);
 }
 
@@ -2584,15 +2554,15 @@ function main() {
         signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
 
     //  Auth
-//    if (isset($_POST['userId'])) {
-//        //if multi form data is used
-//        $cfg['userId'] = $_POST['userId'];
-//    }
-//    if (isset($cfg['userId'])) {
-//        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
-//            returnError('userId is incorrect');
-//        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
-//    }
+    if (isset($_POST['userId'])) {
+        //if multi form data is used
+        $cfg['userId'] = $_POST['userId'];
+    }
+    if (isset($cfg['userId'])) {
+        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
+            returnError('userId is incorrect');
+        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
+    }
 
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
@@ -2655,19 +2625,19 @@ function main() {
     if ($action == "add_doc_image")
         add_doc_image($cfg['dbname'], $_POST['userId'], $_POST['participantId']);
     if ($action == "mod_doc_image")
-        mod_doc_image($cfg['dbname'], $cfg['userId'], $cfg['docId'], $cfg['imageJSON']);
+        mod_doc_image($cfg['dbname'], $_POST['userId'], $_POST['docId']);
     if ($action == "get_doc_image")
         get_doc_image($cfg['dbname'], $cfg['userId'], $cfg['docId']);
     if ($action == "add_partic_picture")
         add_partic_picture($cfg['dbname'], $_POST['userId'], $_POST["participantId"]);
     if ($action == "mod_partic_picture")
-        mod_partic_picture($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['imageJSON']);
+        mod_partic_picture($cfg['dbname'], $_POST['userId'], $_POST['participantId']);
     if ($action == "get_partic_picture")
         get_partic_picture($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "add_user_picture")
         add_user_picture($cfg['dbname'], $_POST['userId']);
     if ($action == "mod_user_picture")
-        mod_user_picture($cfg['dbname'], $cfg['userId'], $cfg['imageJSON']);
+        mod_user_picture($cfg['dbname'], $_POST['userId']);
     if ($action == "get_user_picture")
         get_user_picture($cfg['dbname'], $cfg['userId']);
 }
