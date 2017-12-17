@@ -645,8 +645,8 @@ function insert_sample_records($dbname) {
 //  ====================
 //  Users
     $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, userPictFilename, comments) VALUES
-        ('', '', 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', ''),
-        ('', '', 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '')
+        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', ''),
+        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -656,16 +656,16 @@ function insert_sample_records($dbname) {
 
 //  Participants
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename, comments) VALUES
-        ('', '', 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
-        ('', '', 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
-        ('', '', 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
-        ('', '', 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
-        ('', '', 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
-        ('', '', 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
-        ('', '', 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
-        ('', '', 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
-        ('', '', 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
-        ('', '', 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
+        (0, 0, 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
+        (0, 0, 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
+        (0, 0, 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
+        (0, 0, 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
+        (0, 0, 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -676,9 +676,9 @@ function insert_sample_records($dbname) {
 
 //  Insurers
     $sql = "INSERT INTO insurers (uploadedTime, updatedTime, deleted, insurerType, insurerName, insurerAddr, insurerWebsite, insurerEmail, insurerPhone, insurerFax, comments) VALUES
-        ('', '', 0, 'Medical', 'Cigna', '', 'www.cigna.com', '', '', '', ''),
-        ('', '', 0, 'Medical', 'Regency', '', 'www.regency.com', '', '', '', ''),
-        ('', '', 0, 'Dental', 'Delta Dental', '', 'https://www.deltadental.com', '', '', '', '')
+        (0, 0, 0, 'Medical', 'Cigna', '', 'www.cigna.com', '', '', '', ''),
+        (0, 0, 0, 'Medical', 'Regency', '', 'www.regency.com', '', '', '', ''),
+        (0, 0, 0, 'Dental', 'Delta Dental', '', 'https://www.deltadental.com', '', '', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -689,12 +689,12 @@ function insert_sample_records($dbname) {
 
 //  InsurancePlans
     $sql = "INSERT INTO insuranceplans (uploadedTime, updatedTime, deleted, insurancePlanType, insurerId, insurerName, insurancePlanName, comments) VALUES
-        ('', '', 0, 'PPO', 1, 'Cigna', 'Cigna PPO 5000', ''),
-        ('', '', 0, 'EPO', 1, 'Cigna', 'Cigna EPO 2500', ''),
-        ('', '', 0, 'EPO', 2, 'Regency', 'FocalNetwork Bronze 3500', ''),
-        ('', '', 0, 'EPO', 2, 'Regency', 'EPO Gold 1000', ''),
-        ('', '', 0, 'HMO', 2, 'Regency', 'HMO 2000', ''),
-        ('', '', 0, 'PPO', 3, 'Delta Dental', 'PPO USA', '')
+        (0, 0, 0, 'PPO', 1, 'Cigna', 'Cigna PPO 5000', ''),
+        (0, 0, 0, 'EPO', 1, 'Cigna', 'Cigna EPO 2500', ''),
+        (0, 0, 0, 'EPO', 2, 'Regency', 'FocalNetwork Bronze 3500', ''),
+        (0, 0, 0, 'EPO', 2, 'Regency', 'EPO Gold 1000', ''),
+        (0, 0, 0, 'HMO', 2, 'Regency', 'HMO 2000', ''),
+        (0, 0, 0, 'PPO', 3, 'Delta Dental', 'PPO USA', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -708,20 +708,20 @@ function insert_sample_records($dbname) {
                                         particInsurerName, particInsPlanName, primaryInsPlan, startDate, endDate, monthlyPremium, deductInNetworkFamily, 
                                         deductInNetworkIndiv, deductOutNetworkFamily, deductOutNetworkIndiv, maxOopInNetworkFamily, maxOopInNetworkIndiv, 
                                         maxOopOutNetworkFamily, maxOopOutNetworkIndiv, deductAppliedToOop, comments) VALUES
-        ('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-        ('', '', 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
-        ('', '', 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'Regence', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Regence', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Regence', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 8, 'James', 'Regence', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'Regence', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
-        ('', '', 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'Regence', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
+        (0, 0, 0, 'PPO', 1, 'Jane', 1, 'Jane', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 1, 'Jane', 2, 'John', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 1, 'Jane', 3, 'Brendan', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 1, 'Jane', 4, 'Ashley', 'Cigna', 'Cigna PPO 5000', 1, '01/01/2017', '12/31/2017', '524.37', '8000', '5000', '15000', '12000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 1, 'Jane', 1, 'Jane', 'PPO USA', 'PPO USA', 1, '03/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+        (0, 0, 0, 'PPO', 1, 'Jane', 2, 'John', 'PPO USA', 'PPO USA', 1, '05/01/2017', '12/31/2017', '54.12', '100', '50', '', '', '', '', '', '', 0, ''),
+        (0, 0, 0, 'PPO', 1, 'Jane', 5, 'Barbara', 'Regence', 'FocalNetwork Bronze 3500', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Cigna', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Cigna', 'Cigna EPO 2500', 1, '01/01/2017', '12/31/2017', '415.78', '6000', '2500', '10000', '9000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 6, 'Mary', 'Regence', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '12000', '8000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 7, 'Jake', 'Regence', 'EPO Gold 1000', 0, '01/01/2017', '12/31/2017', '715.11', '2000', '1000', '4000', '3000', '7000', '6000', '120000', '8000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 8, 'James', 'Regence', 'EPO Gold 1000', 1, '01/01/2017', '12/31/2017', '342.00', '5000', '3500', '11000', '8000', '15000', '12000', '30000', '20000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 9, 'James Sr.', 'Regence', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, ''),
+        (0, 0, 0, 'PPO', 2, 'Mary123', 10, 'Maria', 'Regence', 'HMO 2000', 1, '01/01/2017', '12/31/2017', '310.05', '5000', '2000', '6000', '4000', '10000', '8000', '15000', '10000', 1, '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -733,19 +733,19 @@ function insert_sample_records($dbname) {
 //  Docs
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, userId, userName, 
                               participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageFileName, comments) VALUES
-        ('1505583600', '', 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505483600', '275.00', '', '', '', ''),
-        ('1506593612', '', 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506592612', '25.00', '', '', '', ''),
-        ('1506693612', '', 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506692612', '125.00', '', '', '', ''),
-        ('1504077878', '', 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', 3, 'Cigna PPO 5000', '1504067878', '1500.00', '', '', '', ''),
-        ('1503297078', '', 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', 9, 'Cigna EPO 2500', '1503287078', '275.00', '785.34', '1200.47', '', ''),
-        ('1504297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', 13, 'HMO 2000', '1504287078', '275.00', '234.34', '804.50', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505277078', '275.00', '123.55', '314.00', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505477078', '475.00', '223.55', '514.00', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505577078', '575.00', '323.55', '614.00', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
-        ('1505297078', '', 0, 'EOB', 'uploaded', 'reviewed', '', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', '')
+        (1505583600, 0, 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505483600', '275.00', '', '', '', ''),
+        (1506593612, 0, 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506592612', '25.00', '', '', '', ''),
+        (1506693612, 0, 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506692612', '125.00', '', '', '', ''),
+        (1504077878, 0, 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', 3, 'Cigna PPO 5000', '1504067878', '1500.00', '', '', '', ''),
+        (1503297078, 0, 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', 9, 'Cigna EPO 2500', '1503287078', '275.00', '785.34', '1200.47', '', ''),
+        (1504297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', 13, 'HMO 2000', '1504287078', '275.00', '234.34', '804.50', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505277078', '275.00', '123.55', '314.00', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505477078', '475.00', '223.55', '514.00', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505577078', '575.00', '323.55', '614.00', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -758,10 +758,10 @@ function insert_sample_records($dbname) {
     $sql = "INSERT INTO particproviders (uploadedTime, updatedTime, deleted, providerType, userId, userName, participantId, participantName, providerPNI, 
                                          particProviderName, providerLastName, providerFirstName, providerMiddleName, providerSpecialty, providerAddr, 
                                          providerCountyId, providerCountyName, providerWebsite, providerEmail, providerPhone, providerFax, comments) VALUES
-        ('1505583600', '', 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith, Walter S.', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-        ('1506593612', '', 0, 'doctor', 1, 'Jane', 2, 'John', '', 'Jones, Allen', 'Jones', 'Allen', '', 'Cardiologist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-        ('1506693612', '', 0, 'lab', 1, 'Jane', 2, 'John', '', 'Regent MRI', 'Regent MRI', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
-        ('1504077878', '', 0, 'hospital', 1, 'Jane', 3, 'Brendan', '', 'Cook County Hospital', 'Cook County Hospital', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', '')
+        (1505583600, 0, 0, 'doctor', 1, 'Jane', 1, 'Jane', '', 'Smith, Walter S.', 'Smith', 'Walter', 'S.', 'Podiatrist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+        (1506593612,0, 0, 'doctor', 1, 'Jane', 2, 'John', '', 'Jones, Allen', 'Jones', 'Allen', '', 'Cardiologist',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+        (1506693612, 0, 0, 'lab', 1, 'Jane', 2, 'John', '', 'Regent MRI', 'Regent MRI', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', ''),
+        (1504077878, 0, 0, 'hospital', 1, 'Jane', 3, 'Brendan', '', 'Cook County Hospital', 'Cook County Hospital', '', '', '',  'Chicago, IL', 1, 'Coook County', '', '', '', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -775,18 +775,18 @@ function insert_sample_records($dbname) {
                                   particInsPlanId, particInsPlanName, providerPNI, particProviderName, serviceDate, placeOfService, codeType, 
                                   code, codeMod, codeQty, codeDescr, codeAltDescr, amountBilled, amountExcluded, amountAllowed, coInsAmount, coPayAmount, 
                                   particPaid, excluded, exclusionCode, exclusionExplan, comments) VALUES
-        ('1505583600', '', 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', '', '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', '', 2, 
-                                'Toenail Removal (Permanent)', '', 720.75, 220.75, 500.00, 275.00, 0, 178, '', '', '', ''),
-        ('1506593612', '', 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', '', '', '', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', '', 1, 
-                                'Echo transesophageal', '', 400.00, 150.00, 250.00, 25.00, 0, 0, '', '', '', ''),
-        ('1506693612', '', 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', '', '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', '', 1, 
-                                'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', 700.00, 150.00, 550.00, 125.00, 0, 125.00, '', '', '', ''),
-        ('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', '53', 1, 
-                                'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', 8540.00, 3000.00, 5540.00, 1250.00, 0, 1250.00, '', '', '', ''),
-        ('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', '', 1, 
-                                'Anesthesia', '', 1520.00, 250.00, 1270.00, 250.00, 0, 250.00, '', '', '', ''),
-        ('1504077878', '', 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', '', '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 'K35.3', '', '', 
-                                'Appendicitis with rupture', '', '', '', '', '', '', '', '', '', '', '')
+        (1505583600, 0, 0, 'Procedure', 1, 'Bill', 1, 'Jane', 1, 'Jane', 0, '', '', 'Smith, Walter S.', '03/15/17', 'doctors office', 'HCPCS', '11750', 0, 2, 
+                               'Toenail Removal (Permanent)', '', 720.75, 220.75, 500.00, 275.00, 0, 178, 0, '', '', ''),
+        (1506593612, 0, 0, 'Procedure', 2, 'Bill', 1, 'Jane', 2, 'John', 0, '', '', 'Jones, Allen', '04/05/17', 'doctors office', 'HCPCS', '93312', 0, 1, 
+                               'Echo transesophageal', '', 400.00, 150.00, 250.00, 25.00, 0, 0, 0, '', '', ''),
+        (1506693612, 0, 0, 'Procedure', 3 ,'Bill', 1, 'Jane', 2, 'John', 0, '', '', 'Regent MRI', '02/11/17', 'lab', 'HCPCS', '72158', 0, 1, 
+                                'MRI Lumbar Spine w/wo Contrast', 'MRI Lumbar Spine with or without Contrast', 700.00, 150.00, 550.00, 125.00, 0, 125.00, 0, '', '', ''),
+        (1504077878, 0, 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', 0, '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '44960', 53, 1, 
+                              'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', '', 8540.00, 3000.00, 5540.00, 1250.00, 0, 1250.00, 0, '', '', ''),
+        (1504077878, 0, 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', 0, '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'HCPCS', '00840', 0, 1, 
+                                'Anesthesia', '', 1520.00, 250.00, 1270.00, 250.00, 0, 250.00, 0, '', '', ''),
+        (1504077878, 0, 0, 'Procedure', 4, 'Bill', 1, 'Jane', 3, 'Brendan', 0, '', '', 'Cook County Hospital', '06/18/17', 'hospital', 'ICD10', 1353, 0, 0, 
+                                'Appendicitis with rupture', '', '', '', '', '', '', '', 0, '', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -797,13 +797,13 @@ function insert_sample_records($dbname) {
 
 //  Images
     $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, userName, participantId, participantName, imageName, comments) VALUES
-        ('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
-        ('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
-        ('1506693612', '', 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
-        ('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', ''),
-        ('1503297078', '', 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', ''),
-        ('1504297078', '', 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', ''),
-        ('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', '')
+        (1505583600, 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
+        (1506593612, 0, 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
+        (1506693612, 0, 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
+        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', ''),
+        (1503297078, 0, 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', ''),
+        (1504297078, 0, 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', ''),
+        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -814,19 +814,19 @@ function insert_sample_records($dbname) {
 
 //  ImagePages
     $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, userName, participantId, participantName, imageName, pageNum, imageFileName, comments) VALUES
-        ('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
-        ('1505583600', '', 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
-        ('1506593612', '', 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
-        ('1506693612', '', 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', 1, '1_John_Bill_2_1', ''),
-        ('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 1, '1_Brendan_Bill_1_1',''),
-        ('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 2, '1_Brendan_Bill_1_2',''),
-        ('1504077878', '', 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 3, '1_Brendan_Bill_1_3',''),
-        ('1503297078', '', 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', 1, '2_Jake_EOB_1_1', ''),
-        ('1504297078', '', 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', 1, '2_JamesSr_EOB_1_1', ''),
-        ('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 1, '1_Ashley_Bill_1_1', ''),
-        ('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 2, '1_Ashley_Bill_1_2', ''),
-        ('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 3, '1_Ashley_Bill_1_3', ''),
-        ('1505297078', '', 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 4, '1_Ashley_Bill_1_4', '')
+        (1505583600, 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
+        (1505583600, 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
+        (1506593612, 0, 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
+        (1506693612, 0, 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', 1, '1_John_Bill_2_1', ''),
+        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 1, '1_Brendan_Bill_1_1',''),
+        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 2, '1_Brendan_Bill_1_2',''),
+        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 3, '1_Brendan_Bill_1_3',''),
+        (1503297078, 0, 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', 1, '2_Jake_EOB_1_1', ''),
+        (1504297078, 0, 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', 1, '2_JamesSr_EOB_1_1', ''),
+        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 1, '1_Ashley_Bill_1_1', ''),
+        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 2, '1_Ashley_Bill_1_2', ''),
+        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 3, '1_Ashley_Bill_1_3', ''),
+        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 4, '1_Ashley_Bill_1_4', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -836,13 +836,13 @@ function insert_sample_records($dbname) {
 
 //  Codes
     $sql = "INSERT INTO codes (uploadedTime, updatedTime, deleted, codeType, code, codeDescr, codeDescrType, codeNormDescr, codeNormRule, comments) VALUES
-        ('1505583600', '', 0, 'CPT', '11750', 'Toenail Removal (Permanent)', 'Short Descr', '', '', ''),
-        ('1506593612', '', 0, 'CPT', '93312', 'Echo transesophageal', 'Short Descr', '', '',  ''),
-        ('1506693612', '', 0, 'CPT', '72158', 'MRI Lumbar Spine w/wo Contrast', 'Short Descr', '', '',  ''),
-        ('1506693612', '', 0, 'CPT', '72158', 'MRI Lumbar Spine with or without Contrast', 'Medium Descr', '', '',  ''),
-        ('1504077878', '', 0, 'CPT', '44960', 'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', 'Medium Descr', '', '',  ''),
-        ('1504077878', '', 0, 'CPT', '00840', 'Anesthesia', 'Short Descr', '', '',  ''),
-        ('1504077878', '', 0, 'ICD10', 'K35.3', 'Appendicitis with rupture', 'Short Descr', '', '',  '')
+        (1505583600, 0, 0, 'CPT', '11750', 'Toenail Removal (Permanent)', 'Short Descr', '', '', ''),
+        (1506593612, 0, 0, 'CPT', '93312', 'Echo transesophageal', 'Short Descr', '', '',  ''),
+        (1506693612, 0, 0, 'CPT', '72158', 'MRI Lumbar Spine w/wo Contrast', 'Short Descr', '', '',  ''),
+        (1506693612, 0, 0, 'CPT', '72158', 'MRI Lumbar Spine with or without Contrast', 'Medium Descr', '', '',  ''),
+        (1504077878, 0, 0, 'CPT', '44960', 'Appendectomy; for ruptured appendix with abscess or generalized peritonitis', 'Medium Descr', '', '',  ''),
+        (1504077878, 0, 0, 'CPT', '00840', 'Anesthesia', 'Short Descr', '', '',  ''),
+        (1504077878, 0, 0, 'ICD10', 'K35.3', 'Appendicitis with rupture', 'Short Descr', '', '',  '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -864,11 +864,11 @@ function insert_sample_records($dbname) {
 
 //  CodePricess
     $sql = "INSERT INTO codeprices (uploadedTime, updatedTime, deleted, codeType, codeId, code, countyId, countyName, codePriceAve, codePriceStDev, comments) VALUES
-        ('', '', 0, 'HCPCS', 1, '11750', 1, 'Cook County, IL', 220.13, '', ''),
-        ('', '', 0, 'HCPCS', 2, '93312', 1, 'Cook County, IL', 125.00, '', ''),
-        ('', '', 0, 'HCPCS', 3, '72158', 1, 'Cook County, IL', 135.00, '', ''),
-        ('', '', 0, 'HCPCS', 4, '44960', 1, 'Cook County, IL', '', '', ''),
-        ('', '', 0, 'HCPCS', 5, '00840', 1, 'Cook County, IL', 512.34, '', '')
+        (0, 0, 0, 'HCPCS', 1, '11750', 1, 'Cook County, IL', 220.13, '', ''),
+        (0, 0, 0, 'HCPCS', 2, '93312', 1, 'Cook County, IL', 125.00, '', ''),
+        (0, 0, 0, 'HCPCS', 3, '72158', 1, 'Cook County, IL', 135.00, '', ''),
+        (0, 0, 0, 'HCPCS', 4, '44960', 1, 'Cook County, IL', '', '', ''),
+        (0, 0, 0, 'HCPCS', 5, '00840', 1, 'Cook County, IL', 512.34, '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -880,11 +880,11 @@ function insert_sample_records($dbname) {
 //  Notes
     $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, 
                                particInsPlanId, particInsPlanName, doctype, tableName, recordId, noteText, comments) VALUES
-        ('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
-        ('1505584600', '', 0, '', 1, 'Jane', 1, 'Jane', '', '', 'Bill', 'docs', 1, 'Need to ask doctor why the bill is so high', ''),
-        ('1506595612', '', 0, '', 1, 'Jane', 2, 'John', '', '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
-        ('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', ''),
-        ('1505298078', '', 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Call Cigna to negotiate the rejected procedure', '')
+        (1505584600, 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
+        (1505584600, 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'Bill', 'docs', 1, 'Need to ask doctor why the bill is so high', ''),
+        (1506595612, 0, 0, '', 1, 'Jane', 2, 'John', 0, '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
+        (1505298078, 0, 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', ''),
+        (1505298078, 0, 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Call Cigna to negotiate the rejected procedure', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -894,8 +894,8 @@ function insert_sample_records($dbname) {
 
 //  HomepageTexts
     $sql = "INSERT INTO homepagetexts (uploadedTime, updatedTime, deleted, textType, textTitle, textBody, comments) VALUES
-        ('1505584600', '', '', '', 'Main Intro', 'Glendor app helps you ...', ''),
-        ('1505584600', '', '', '', 'Privacy Note', 'BlaBlaBla ...', '')
+        (1505584600, 0, 0, '', 'Main Intro', 'Glendor app helps you ...', ''),
+        (1505584600, 0, 0, '', 'Privacy Note', 'BlaBlaBla ...', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -1220,7 +1220,7 @@ function get_participants($dbname, $userId, $participantId) {
     $participantRes = array();
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $row["particPictFilename"] = storageURL(getenv('BUCKET_NAME'), $participant["particPictFilename"]);
+            $row["particPictFilename"] = storageURL($row["particPictFilename"]);
             $participantRes[] = $row;
         }
         $res->close();
@@ -1321,10 +1321,17 @@ function get_image_upload_url($userId) {
                 $image_upload_result["errors"][] = "An error uploading image.";
             }
         }
-        return $image_upload_result;
     } else {
         $image_upload_result["errors"][] = "No Pic file included";
     }
+    if (empty($image_upload_result["errors"])) {
+        if (empty($image_upload_result["file_name"])) {
+            returnError("Error uploading image!");
+        }
+    } else {
+        returnError($image_upload_result["errors"]);
+    }
+    return $image_upload_result["file_name"];
 }
 
 function add_participant($dbname, $userId, $participantJSON) {
@@ -1352,11 +1359,7 @@ function add_participant($dbname, $userId, $participantJSON) {
         $res->close();
     }
 
-    $image_upload_result = get_image_upload_url($userId);
-
-    if (empty($image_upload_result["errors"])) {
-        $participantJSON['particPictFilename'] = $image_upload_result["file_name"];
-    }
+    $participantJSON['particPictFilename'] = get_image_upload_url($userId);
 
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
         ('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
@@ -1999,7 +2002,7 @@ function user_forgot_password($dbname, $userJSON) {
     returnResponse($response);
 }
 
-function add_doc_image($dbname, $userId, $participantId, $imageJSON) {
+function add_doc_image($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -2009,10 +2012,6 @@ function add_doc_image($dbname, $userId, $participantId, $imageJSON) {
         returnError('userId is empty');
     if (empty($participantId))
         returnError('participantId is empty');
-    if (empty($imageJSON))
-        returnError('imageJSON is empty');
-    if (empty($imageJSON['image']))
-        returnError('imageJSON has empty image');
 
     $uploadedTime = time();
     $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
@@ -2028,16 +2027,16 @@ function add_doc_image($dbname, $userId, $participantId, $imageJSON) {
         $res->close();
     }
 
-    $imageFileName = "c:/__Glendor/UserImages/doc_" . $participantId . "_" . $uploadedTime . ".jpg";
-    $image = base64_decode($imageJSON['image']);
-    file_put_contents($imageFileName, $image);
+    $imageFileName = get_image_upload_url($userId);
+
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
-                userId, userName, participantId, participantName, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageFileName, comments) VALUES
-                ('" . $uploadedTime . "', '', '', '', 'uploaded', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participantId . "', 
-                '" . $participantName . "', '', '', '', '', '', '" . $imageFileName . "', '')";
+                userId, userName, participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageFileName, comments) VALUES
+                (" . $uploadedTime . ", 0, 0, '', 'uploaded', '', '', '', " . $userId . ", '" . $userName . "', " . $participantId . ", 
+                '" . $participantName . "', 0,'', 0, '', '', '', '" . $imageFileName . "', '')";
+
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $docId = $mysqli->insert_id;
     $sql = "SELECT * FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
@@ -2047,7 +2046,7 @@ function add_doc_image($dbname, $userId, $participantId, $imageJSON) {
     $res->close();
     $mysqli->close();
     log_new_record($dbname, 'docs', $record);
-    $response["imageFileName"] = $imageFileName;
+    $response["imageFileName"] = storageURL($imageFileName);
     $response["docId"] = $docId;
     returnResponse($response);
 }
@@ -2081,7 +2080,7 @@ function mod_doc_image($dbname, $userId, $docId, $imageJSON) {
     $sql = "UPDATE docs SET updatedTime = " . $updatedTime . " WHERE userId = '" . $userId . "' AND id = " . $docId;
     $res = $mysqli->query($sql);
     if ($res === false)
-        returnError('Sql error');
+        returnError($mysqli->error);
     $image = base64_decode($imageJSON['image']);
     if (!empty($imageFileName))
         file_put_contents($imageFileName, $image);
@@ -2129,7 +2128,7 @@ function get_doc_image($dbname, $userId, $docId) {
     returnResponse($imageRes);
 }
 
-function add_partic_picture($dbname, $userId, $participantId, $imageJSON) {
+function add_partic_picture($dbname, $userId, $participantId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -2139,15 +2138,8 @@ function add_partic_picture($dbname, $userId, $participantId, $imageJSON) {
         returnError('userId is empty');
     if (empty($participantId))
         returnError('participantId is empty');
-    if (empty($imageJSON))
-        returnError('imageJSON is empty');
-    if (empty($imageJSON['image']))
-        returnError('imageJSON has empty image');
-
     $updatedTime = time();
-    $imageFileName = "c:/__Glendor/UserImages/partic_" . $participantId . "_" . $updatedTime . ".jpg";
-    $image = base64_decode($imageJSON['image']);
-    file_put_contents($imageFileName, $image);
+    $imageFileName = get_image_upload_url($userId);
     $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
     $res = $mysqli->query($sql);
     while ($recordOld = $res->fetch_assoc()) {
@@ -2163,11 +2155,12 @@ function add_partic_picture($dbname, $userId, $participantId, $imageJSON) {
     while ($recordNew = $res->fetch_assoc()) {
         break;
     }
+
     $res->close();
     $mysqli->close();
     log_mod_record($dbname, 'participants', $recordNew, $recordOld);
     $response["participantId"] = $participantId;
-    $response["particPictFilename"] = $imageFileName;
+    $response["particPictFilename"] = storageURL($imageFileName);
     returnResponse($response);
 }
 
@@ -2247,19 +2240,11 @@ function get_partic_picture($dbname, $userId, $participantId) {
         }
         $res->close();
     }
-
-    $image = "";
-    if (!empty($imageFileName))
-        $image = file_get_contents($imageFileName, $image);
-    $imageRes['image'] = base64_encode($image);
-    $imageRes["particPictFilename"] = $imageFileName;
-
-//file_put_contents ("c:/__Glendor/UserImages/img1.json", json_encode($imageRes));  
-
+    $imageRes["particPictFilename"] = storageURL($imageFileName);
     returnResponse($imageRes);
 }
 
-function add_user_picture($dbname, $userId, $imageJSON) {
+function add_user_picture($dbname, $userId) {
     include 'main.php';
     $mysqli = $conn;
 
@@ -2267,15 +2252,8 @@ function add_user_picture($dbname, $userId, $imageJSON) {
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
-    if (empty($imageJSON))
-        returnError('imageJSON is empty');
-    if (empty($imageJSON['image']))
-        returnError('imageJSON has empty image');
-
     $updatedTime = time();
-    $imageFileName = "c:/__Glendor/UserImages/user_" . $userId . "_" . $updatedTime . ".jpg";
-    $image = base64_decode($imageJSON['image']);
-    file_put_contents($imageFileName, $image);
+    $imageFileName = get_image_upload_url($userId);
     $sql = "SELECT userPictFilename FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
     $res = $mysqli->query($sql);
     while ($recordOld = $res->fetch_assoc()) {
@@ -2295,7 +2273,7 @@ function add_user_picture($dbname, $userId, $imageJSON) {
     $mysqli->close();
     log_mod_record($dbname, 'users', $recordNew, $recordOld);
     $response["userId"] = $userId;
-    $response["userPictFilename"] = $imageFileName;
+    $response["userPictFilename"] = storageURL($imageFileName);
     returnResponse($response);
 }
 
@@ -2569,7 +2547,11 @@ function activation($dbname) {
     }
 }
 
-function storageURL($bucket, $archivo) {
+function storageURL($archivo) {
+    if (empty($archivo)) {
+        returnError("Empty image file name!");
+    }
+    $bucket = getenv('BUCKET_NAME');
     $expires = time() + 120;
     $to_sign = ("GET\n\n\n" . $expires . "\n/" . $bucket . '/' . $archivo);
     $pkeyid = openssl_get_privatekey("-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCSXZlN9prmbHNM\nPARPgQs+88VCjdkPjNavjCw6YCFf1aEhnC3GNgOqko/e2eq81j9axq2WQQw2XZLy\nFC7MT860s9JJe2wJmUPihPNXBS0r/VtTELW8CuJYQ2wVsawxzD2M2h5/orNe+9Xo\nzmq3dWdxHIZJUQaO1DaoO6bX1pjQVS81g/s5dBO0ieLJSjoO585eCPLTlKkLp0kN\n4FoIbl5XjaAsBMPCnJNRhtNFhg0NL5VErWUmTiY0GqR+rc/LEmKjii4LeXXt04Wr\nI0YXg+mT2QjyuxWSwhicmVf0s/eN9dNbeYh99MWRvyadsWh7P91WSw66GrBoCsu9\ngr144ad1AgMBAAECggEABQrsVM3jKn8AM5dEwcAif6Mn6mysgWHlj/ZDxtNtiu73\nW8r/nmWELPywMBTGHDFDIluX0EZXnJ7kM2rDwv5uksti5Re3Z5bsH7zbYmXiAh2Q\nPNV69r/RlQoQ9P1iVJ6NXKczfPZsI3YIjw+03bMR4t6BTOYu/uhA+tJVTk3ihW5A\niMwqywBF7L85e0HbKGMzjEqsOzVX6YdPuzvKFnB+WZH8UUQCiAzgT/paIHYzI8O6\nSci0r0AYIwo168ImaF/Y36HQRo/vbw+v3bAOwDN5ET01KUaXrsHGlLo8EzPEb9mF\nfLLSyWBwSxTqeVH+z9rqHFQ/BNrq9qBurQL2AjeCuQKBgQDNDP4TLdFTeuUe80A6\nzrRK9PDg4FQ1Ce9B6WUOVa59Vm8wJfg4hivae2H8mjE7fDmBq+MqyDFjdh9Of0BJ\n9UtkYRjrNcyiCRSm7+t4GZkYBvl1RFl5T4Z0Sokm1wD99Fri6I8yQnSppVypmjdX\nPFq+7+8HSJVCku+tgCK9kF8WCQKBgQC2u7kAbmGYRCvBIGMCVOY+VdKrkrhY2R0C\ncQ6m23PpH2QLyYFgHfFDD9XIYFT8lCQ00MV9EVUrhtmGbtVZe3YID0mPgwHo1zYi\nSn2C4wfSkzNptsfE+5KkBv1TxRVEpL/aZm1p90vg+6OIfDz9CLFw1iElX5h6da5c\n6pCIbxuBDQKBgGWA+v0Pf0Gt4mHR1IfH7yPz4JHROp4Ozut319iivX+6G8xf32JL\nuMWssjLTOW/S7LyuFAQHmbs8q/61q2NxE+Ma1bUJqsTDbf+9YHjRYyGrwi00qn4M\nyegjRYV+hTUxkxQkP06H6yxXeWlTt/VtIRbHuzGF0q1kA1WFyqzAHPHRAoGAJyZW\n/5GmlTHd0fW3YLOB1M8cYKgBmP+DKJfCVNtlnQedrqzQbCBeJUkKO3DwJGE01J/5\n/86r2bR9fEDYsuAxrI5h6z5dNV6OeZBODbHIZkQlWrvPVxOzGjNpKP5rjRZjCE6z\nmGVkO2KOadp8UpX/NjaaSWCO0YXPApc6uhBb6y0CgYB4KhMVXhthvfPxgkY0WhA4\nrGdZfxp9vdcpImKOyYeShZ1K/QgMZ1iyyHVtHuZrgLEOpJVrCvpPEJ5XsxHmBuGG\n7nIDj6oKavWHYeeaZ2lBd2zuare7kV1K6jPaJzm74GTbKMibFSi4+tDSYDTR+tAu\nSPSjd+UPCHA8l+Y5XcL+zA==
@@ -2593,7 +2575,7 @@ function main() {
     $cfg['dbname'] = "glendor";
 
     if ($action == "get_temp_url")
-        storageURL(getenv('BUCKET_NAME'), $cfg['fileName']);
+        storageURL($cfg['fileName']);
     if ($action == "login")
         login($cfg['dbname'], $cfg['userName'], $cfg['password']);
     if ($action == "activation")
@@ -2602,11 +2584,15 @@ function main() {
         signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
 
     //  Auth
-    if (isset($cfg['userId'])) {
-        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
-            returnError('userId is incorrect');
-        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
-    }
+//    if (isset($_POST['userId'])) {
+//        //if multi form data is used
+//        $cfg['userId'] = $_POST['userId'];
+//    }
+//    if (isset($cfg['userId'])) {
+//        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
+//            returnError('userId is incorrect');
+//        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
+//    }
 
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
@@ -2667,19 +2653,19 @@ function main() {
     if ($action == "user_forgot_password")
         user_forgot_password($cfg['dbname'], $cfg['userJSON']);
     if ($action == "add_doc_image")
-        add_doc_image($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['imageJSON']);
+        add_doc_image($cfg['dbname'], $_POST['userId'], $_POST['participantId']);
     if ($action == "mod_doc_image")
         mod_doc_image($cfg['dbname'], $cfg['userId'], $cfg['docId'], $cfg['imageJSON']);
     if ($action == "get_doc_image")
         get_doc_image($cfg['dbname'], $cfg['userId'], $cfg['docId']);
     if ($action == "add_partic_picture")
-        add_partic_picture($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['imageJSON']);
+        add_partic_picture($cfg['dbname'], $_POST['userId'], $_POST["participantId"]);
     if ($action == "mod_partic_picture")
         mod_partic_picture($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['imageJSON']);
     if ($action == "get_partic_picture")
         get_partic_picture($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "add_user_picture")
-        add_user_picture($cfg['dbname'], $cfg['userId'], $cfg['imageJSON']);
+        add_user_picture($cfg['dbname'], $_POST['userId']);
     if ($action == "mod_user_picture")
         mod_user_picture($cfg['dbname'], $cfg['userId'], $cfg['imageJSON']);
     if ($action == "get_user_picture")
