@@ -33,16 +33,6 @@ function returnResponse($result) {
 
 function get_userinternalid($dbname, $userExternalId) {
     include 'main.php';
-    if ($conn->query("DROP DATABASE $dbname") === FALSE) {
-        die("Could not drop database: $conn->error [$conn->errno]");
-    }
-    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
-        die("Could not create database: $conn->error [$conn->errno]");
-    }
-
-    if ($conn->select_db($db) === FALSE) {
-        die("Could not select database: $conn->error [$conn->errno]");
-    }
     $mysqli = $conn;
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -63,16 +53,6 @@ function get_userinternalid($dbname, $userExternalId) {
 
 function verify_userexternalid($dbname, $userExternalId) {
     include 'main.php';
-    if ($conn->query("DROP DATABASE $dbname") === FALSE) {
-        die("Could not drop database: $conn->error [$conn->errno]");
-    }
-    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
-        die("Could not create database: $conn->error [$conn->errno]");
-    }
-
-    if ($conn->select_db($db) === FALSE) {
-        die("Could not select database: $conn->error [$conn->errno]");
-    }
     $mysqli = $conn;
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2519,7 +2499,7 @@ function activation($dbname) {
 
 function storageURL($archivo) {
     if (empty($archivo)) {
-        returnError("Empty image file name!");
+        return null;
     }
     $bucket = getenv('BUCKET_NAME');
     $expires = time() + 120;
