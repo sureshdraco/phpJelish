@@ -272,3 +272,151 @@ index.php/login
 
 input e.g.:
 {"userName":"sureshdraco", "password":"signup123"}
+
+
+=============== add_user_picture ================ 
+
+add_user_picture - Add user picture 
+
+URL: https://gl20171109.appspot.com/add_user_picture
+
+Method: POST
+Request Object: 'multipart/form-data'
+
+Input
+{
+	userId: 				number,(required) 
+	pic_file: image file (regquired)
+}
+
+
+=============== mod_user_picture ================ 
+
+mod_user_picture - Update the user picture 
+
+https://gl20171109.appspot.com/mod_user_picture
+
+Method: POST
+Request Object: 'multipart/form-data'
+
+Input
+{
+	userId: 				number,(required) 
+	pic_file: image file (regquired)
+}
+
+=============== get_user_picture ================ 
+
+get_user_picture - get the user picture 
+
+https://gl20171109.appspot.com/get_user_picture
+
+Method: POST
+Request Object: 'application/json'
+
+Input
+{	
+	userId: 				number,(required)
+}
+
+
+=============== add_partic_picture ================ 
+
+add_partic_picture - Add paticipant picture 
+
+URL: https://gl20171109.appspot.com/add_partic_picture
+
+Method: POST
+Request Object: 'multipart/form-data'
+
+Input
+{
+	userId: 				number,(required) 
+	participantId: number, (required)
+	pic_file: image file (regquired)
+}
+
+
+=============== mod_partic_picture ================ 
+
+mod_partic_picture - Update the participant picture 
+
+https://gl20171109.appspot.com/mod_partic_picture
+
+Method: POST
+Request Object: 'multipart/form-data'
+
+Input
+{
+	userId: 				number,(required) 
+	participantId: number, (required)
+	pic_file: image file (regquired)
+}
+
+=============== get_partic_picture ================ 
+
+get_partic_picture - get the user picture 
+
+https://gl20171109.appspot.com/get_partic_picture
+
+Method: POST
+Request Object: 'application/json'
+
+Input
+{	
+	userId: 				number,(required)
+	participantId: number, (required)
+}
+
+
+=============== add_doc_image ================ 
+
+add_doc_image - Add document picture 
+
+URL: https://gl20171109.appspot.com/add_doc_image
+
+Method: POST
+Request Object: 'multipart/form-data'
+
+Input
+{
+	userId: 				number,(required) 
+	participantId: number, (required)
+	pic_file: image file (regquired)
+}
+
+
+=============== mod_user_picture ================ 
+
+mod_doc_image - Update the document picture 
+
+https://gl20171109.appspot.com/mod_doc_image
+
+Method: POST
+Request Object: 'multipart/form-data'
+
+Input
+{
+	userId: 				number,(required) 
+	participantId: number, (required)
+	docId: number, (required)
+	pic_file: image file (regquired)
+}
+
+=============== get_doc_image ================ 
+
+get_doc_image - get the docuement picture 
+
+https://gl20171109.appspot.com/get_doc_image
+
+Method: POST
+Request Object: 'application/json'
+
+Input
+{	
+	userId: 				number,(required)
+	docId: number (required)
+}
+
+
+
