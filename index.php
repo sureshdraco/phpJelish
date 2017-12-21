@@ -1,5 +1,10 @@
 <?php
 
+require_once 'google/appengine/api/users/User.php';
+require_once 'google/appengine/api/users/UserService.php';
+
+use google\appengine\api\users\User;
+use google\appengine\api\users\UserService;
 use google\appengine\api\cloud_storage\CloudStorageTools;
 
 error_reporting(E_ERROR);
@@ -32,8 +37,7 @@ function returnResponse($result) {
 }
 
 function get_userinternalid($dbname, $userExternalId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     if ($mysqli === false)
         returnError('Sql Connection error');
 
@@ -52,8 +56,7 @@ function get_userinternalid($dbname, $userExternalId) {
 }
 
 function verify_userexternalid($dbname, $userExternalId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     if ($mysqli === false)
         returnError('Sql Connection error');
 
@@ -72,7 +75,9 @@ function verify_userexternalid($dbname, $userExternalId) {
 }
 
 function build_db_schema($dbname) {
-    include 'main.php';
+    $conn = getConn();
+    if ($conn === false)
+        returnError($conn->error);
     if ($conn->query("DROP DATABASE $dbname") === FALSE) {
         die("Could not drop database: $conn->error [$conn->errno]");
     }
@@ -617,8 +622,7 @@ function build_db_schema($dbname) {
 function insert_sample_records($dbname) {
     echo("Started insert_sample_records...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 // Attempt insert query execution
 //  ====================
 //  User Info Tables
@@ -888,8 +892,7 @@ function insert_sample_records($dbname) {
 }
 
 function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -924,8 +927,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
 }
 
 function get_doc_details($dbname, $userId, $participantId, $docId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -968,8 +970,7 @@ function get_doc_details($dbname, $userId, $participantId, $docId) {
 }
 
 function get_doc_items($dbname, $userId, $participantId, $docId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1015,8 +1016,7 @@ function get_doc_items($dbname, $userId, $participantId, $docId) {
 }
 
 function get_home_page_texts($dbname) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1036,8 +1036,7 @@ function get_home_page_texts($dbname) {
 }
 
 function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
 // Check connection
     if ($mysqli === false)
@@ -1108,8 +1107,7 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
 }
 
 function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1153,8 +1151,7 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
 }
 
 function get_partic_ins_plans($dbname, $userId, $participantId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1182,8 +1179,7 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
 }
 
 function get_participants($dbname, $userId, $participantId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1211,8 +1207,7 @@ function get_participants($dbname, $userId, $participantId) {
 }
 
 function get_particproviders($dbname, $userId, $participantId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1240,8 +1235,7 @@ function get_particproviders($dbname, $userId, $participantId) {
 }
 
 function log_new_record($dbname, $tableName, $record) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1259,8 +1253,7 @@ function log_new_record($dbname, $tableName, $record) {
 }
 
 function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1315,8 +1308,7 @@ function get_image_upload_url($userId) {
 }
 
 function add_participant($dbname, $userId, $participantJSON) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1363,8 +1355,7 @@ function add_participant($dbname, $userId, $participantJSON) {
 }
 
 function mod_participant($dbname, $userId, $participantId, $participantJSON) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1410,8 +1401,7 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
 
 function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1459,8 +1449,7 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
 
 function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1504,9 +1493,7 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
 
 function add_partic_provider($dbname, $userId, $participantId, $particProviderJSON) {
     $provider = $particProviderJSON;
-
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
@@ -1553,8 +1540,7 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
 
 function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
     $provider = $particProviderJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1596,8 +1582,7 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
 
 function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     $note = $noteJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
     if (empty($userId))
         returnError('userId is empty');
     if (empty($participantId))
@@ -1644,8 +1629,7 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
 
 function mod_note($dbname, $userId, $noteId, $noteJSON) {
     $note = $noteJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1688,8 +1672,7 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
 
 function mod_doc($dbname, $userId, $docId, $docJSON) {
     $doc = $docJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1732,8 +1715,7 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
 
 function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
     $docitem = $docitemJSON;
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     // Check connection
     if ($mysqli === false)
@@ -1781,8 +1763,7 @@ function make_userexternalid($userId) {
 }
 
 function add_user($dbname, $userJSON) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1846,8 +1827,7 @@ function add_user($dbname, $userJSON) {
 }
 
 function mod_user($dbname, $userId, $userJSON) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1896,8 +1876,7 @@ function mod_user($dbname, $userId, $userJSON) {
 }
 
 function get_user_id($dbname, $userJSON) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
 // Check connection
     if ($mysqli === false)
@@ -1931,8 +1910,7 @@ function get_user_id($dbname, $userJSON) {
 }
 
 function get_user_details($dbname, $userId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1955,8 +1933,7 @@ function get_user_details($dbname, $userId) {
 
 function user_forgot_password($dbname, $userJSON) {
 //  Need to send email to user with temporary password that user will change to the new one
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -1983,8 +1960,7 @@ function user_forgot_password($dbname, $userJSON) {
 }
 
 function add_doc_image($dbname, $userId, $participantId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2032,8 +2008,7 @@ function add_doc_image($dbname, $userId, $participantId) {
 }
 
 function mod_doc_image($dbname, $userId, $docId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2070,8 +2045,7 @@ function mod_doc_image($dbname, $userId, $docId) {
 
 function get_doc_image($dbname, $userId, $docId) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
 // Check connection
     if ($mysqli === false)
@@ -2097,8 +2071,7 @@ function get_doc_image($dbname, $userId, $docId) {
 }
 
 function add_partic_picture($dbname, $userId, $participantId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2133,8 +2106,7 @@ function add_partic_picture($dbname, $userId, $participantId) {
 }
 
 function mod_partic_picture($dbname, $userId, $participantId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2181,8 +2153,7 @@ function mod_partic_picture($dbname, $userId, $participantId) {
 
 function get_partic_picture($dbname, $userId, $participantId) {
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
 // Check connection
     if ($mysqli === false)
@@ -2208,8 +2179,7 @@ function get_partic_picture($dbname, $userId, $participantId) {
 }
 
 function add_user_picture($dbname, $userId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2241,8 +2211,7 @@ function add_user_picture($dbname, $userId) {
 }
 
 function mod_user_picture($dbname, $userId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2286,8 +2255,7 @@ function mod_user_picture($dbname, $userId) {
 }
 
 function get_user_picture($dbname, $userId) {
-    include 'main.php';
-    $mysqli = $conn;
+    $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -2515,8 +2483,28 @@ function storageURL($archivo) {
     return 'https://' . $bucket . '.storage.googleapis.com/' . $archivo . '?GoogleAccessId=temp-access-media@gl20171109.iam.gserviceaccount.com&Expires=' . $expires . '&Signature=' . $signature;
 }
 
+function getConn() {
+    $db = getenv('DB_NAME');
+    if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
+        $conn = mysqli_connect(null, getenv('PRODUCTION_DB_USERNAME'), getenv('PRODUCTION_DB_PASSWORD'), null, null, getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
+    } else {
+        $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), getenv('DEVELOPMENT_DB_USERNAME'), getenv('DEVELOPMENT_DB_PASSWORD'));
+    }
+    if ($conn->connect_error) {
+        returnError("Could not connect to database: $conn->connect_error " .
+                "[$conn->connect_errno]");
+    }
+    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
+        returnError("Could not create database: $conn->error [$conn->errno]");
+    }
+    if ($conn->select_db($db) === FALSE) {
+        returnError("Could not select database: $conn->error [$conn->errno]");
+    }
+    return $conn;
+}
+
 function main() {
-// main function
+    // main function
     global $cfg;
     $request = $_SERVER['REQUEST_URI'];
     $request_parts = explode('/', $request);
@@ -2534,15 +2522,15 @@ function main() {
         signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
 
     //  Auth
-    if (isset($_POST['userId'])) {
-        //if multi form data is used
-        $cfg['userId'] = $_POST['userId'];
-    }
-    if (isset($cfg['userId'])) {
-        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
-            returnError('userId is incorrect');
-        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
-    }
+//    if (isset($_POST['userId'])) {
+//        //if multi form data is used
+//        $cfg['userId'] = $_POST['userId'];
+//    }
+//    if (isset($cfg['userId'])) {
+//        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
+//            returnError('userId is incorrect');
+//        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
+//    }
 
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
