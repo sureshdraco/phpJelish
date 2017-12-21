@@ -1,8 +1,5 @@
 <?php
 
-require_once 'google/appengine/api/users/User.php';
-require_once 'google/appengine/api/users/UserService.php';
-
 use google\appengine\api\users\User;
 use google\appengine\api\users\UserService;
 use google\appengine\api\cloud_storage\CloudStorageTools;
@@ -16,6 +13,28 @@ $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
 
 $parameters = array();
+
+function getConn() {
+    require_once 'google/appengine/api/users/User.php';
+    require_once 'google/appengine/api/users/UserService.php';
+    $db = getenv('DB_NAME');
+    if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
+        $conn = mysqli_connect(null, getenv('PRODUCTION_DB_USERNAME'), getenv('PRODUCTION_DB_PASSWORD'), null, null, getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
+    } else {
+        $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), getenv('DEVELOPMENT_DB_USERNAME'), getenv('DEVELOPMENT_DB_PASSWORD'));
+    }
+    if ($conn->connect_error) {
+        returnError("Could not connect to database: $conn->connect_error " .
+                "[$conn->connect_errno]");
+    }
+    if ($conn->query("CREATE DATABASE IF NOT EXISTS " . $db) === FALSE) {
+        returnError("Could not create database: $conn->error [$conn->errno]");
+    }
+    if ($conn->select_db($db) === FALSE) {
+        returnError("Could not select database: $conn->error [$conn->errno]");
+    }
+    return $conn;
+}
 
 function returnError($error) {
     header("HTTP/1.0 500 Internal Server Error");
@@ -81,11 +100,11 @@ function build_db_schema($dbname) {
     if ($conn->query("DROP DATABASE $dbname") === FALSE) {
         die("Could not drop database: $conn->error [$conn->errno]");
     }
-    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
+    if ($conn->query("CREATE DATABASE IF NOT EXISTS $dbname") === FALSE) {
         die("Could not create database: $conn->error [$conn->errno]");
     }
 
-    if ($conn->select_db($db) === FALSE) {
+    if ($conn->select_db($dbname) === FALSE) {
         die("Could not select database: $conn->error [$conn->errno]");
     }
     $mysqli = $conn;
@@ -2483,26 +2502,6 @@ function storageURL($archivo) {
     return 'https://' . $bucket . '.storage.googleapis.com/' . $archivo . '?GoogleAccessId=temp-access-media@gl20171109.iam.gserviceaccount.com&Expires=' . $expires . '&Signature=' . $signature;
 }
 
-function getConn() {
-    $db = getenv('DB_NAME');
-    if (strpos(getenv('SERVER_SOFTWARE'), 'Development') === false) {
-        $conn = mysqli_connect(null, getenv('PRODUCTION_DB_USERNAME'), getenv('PRODUCTION_DB_PASSWORD'), null, null, getenv('PRODUCTION_CLOUD_SQL_INSTANCE'));
-    } else {
-        $conn = mysqli_connect(getenv('DEVELOPMENT_DB_HOST'), getenv('DEVELOPMENT_DB_USERNAME'), getenv('DEVELOPMENT_DB_PASSWORD'));
-    }
-    if ($conn->connect_error) {
-        returnError("Could not connect to database: $conn->connect_error " .
-                "[$conn->connect_errno]");
-    }
-    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
-        returnError("Could not create database: $conn->error [$conn->errno]");
-    }
-    if ($conn->select_db($db) === FALSE) {
-        returnError("Could not select database: $conn->error [$conn->errno]");
-    }
-    return $conn;
-}
-
 function main() {
     // main function
     global $cfg;
@@ -2522,15 +2521,15 @@ function main() {
         signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
 
     //  Auth
-//    if (isset($_POST['userId'])) {
-//        //if multi form data is used
-//        $cfg['userId'] = $_POST['userId'];
-//    }
-//    if (isset($cfg['userId'])) {
-//        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
-//            returnError('userId is incorrect');
-//        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
-//    }
+    if (isset($_POST['userId'])) {
+        //if multi form data is used
+        $cfg['userId'] = $_POST['userId'];
+    }
+    if (isset($cfg['userId'])) {
+        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
+            returnError('userId is incorrect');
+        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
+    }
 
     if ($action == "build_db_schema")
         build_db_schema($cfg['dbname']);
