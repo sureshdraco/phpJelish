@@ -11,10 +11,23 @@ define('SITEEMAIL', 'noreply@domain.com');
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
+$gCloud = !empty(getenv('DB_NAME'));
+$dbName = 'glendor';
+$hostName = 'localhost';
+$userName = 'root';
+$password = 'hercules15';
 
 $parameters = array();
 
 function getConn() {
+    if ($GLOBALS['gCloud']) {
+        return getGcloudConn();
+    } else {
+        return getLocalConn();
+    }
+}
+
+function getGcloudConn() {
     require_once 'google/appengine/api/users/User.php';
     require_once 'google/appengine/api/users/UserService.php';
     $db = getenv('DB_NAME');
@@ -31,6 +44,21 @@ function getConn() {
         returnError("Could not create database: $conn->error [$conn->errno]");
     }
     if ($conn->select_db($db) === FALSE) {
+        returnError("Could not select database: $conn->error [$conn->errno]");
+    }
+    return $conn;
+}
+
+function getLocalConn() {
+    $conn = new mysqli($GLOBALS['hostName'], $GLOBALS['userName'], $GLOBALS['password'], $GLOBALS['dbName']);
+    if ($conn->connect_error) {
+        returnError("Could not connect to database: $conn->connect_error " .
+                "[$conn->connect_errno]");
+    }
+    if ($conn->query("CREATE DATABASE IF NOT EXISTS " . $GLOBALS['dbName']) === FALSE) {
+        returnError("Could not create database: $conn->error [$conn->errno]");
+    }
+    if ($conn->select_db($GLOBALS['dbName']) === FALSE) {
         returnError("Could not select database: $conn->error [$conn->errno]");
     }
     return $conn;
@@ -2507,7 +2535,7 @@ function main() {
     global $cfg;
     $request = $_SERVER['REQUEST_URI'];
     $request_parts = explode('/', $request);
-    $action = $request_parts[1];
+    $action = $request_parts[sizeof($request_parts) - 1];
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
 
