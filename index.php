@@ -11,7 +11,7 @@ define('SITEEMAIL', 'noreply@domain.com');
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
-$gCloud = !empty(getenv('DB_NAME'));
+$gCloud = getenv('ENVIRONMENT') === 'google';
 $dbName = 'glendor';
 $hostName = 'localhost';
 $userName = 'root';
