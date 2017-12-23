@@ -16,7 +16,7 @@ $dbName = 'glendor';
 $hostName = 'localhost';
 $userName = 'root';
 $password = 'hercules15';
-$bucketName = getenv('BUCKET_NAME');;
+$bucketName = 'gl20171109.appspot.com';
 
 $parameters = array();
 
