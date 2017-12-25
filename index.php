@@ -31,23 +31,29 @@ function get_image_upload_url($userId) {
 function get_aws_image_upload_url($userId) {
     $fileName = $_FILES['pic_file']['name'];
     $fileExtension = strtolower(end(explode('.', $fileName)));
-    $ch = curl_init();
-    $date = new DateTime();
-    $imageName = $date->getTimestamp() . "_" . $userId . "." . $fileExtension;
-    $fileTmpName = $_FILES['pic_file']['tmp_name'];
-    $url = "https://www.googleapis.com/upload/storage/v1/b/" . $GLOBALS["bucketName"] . "/o?uploadType=media&name=" . $imageName . "&key=AIzaSyD4uv3scHBAr3JLeOZXHrRLf9PYcJTlxz0";
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($fileTmpName));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: image/' . $fileExtension));
-    curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if (strcmp($httpcode, "200") === 0) {
-        return $imageName;
-    }
-    returnError("Error uploading image!");
+    try  {
+        $ch = curl_init();
+        $date = new DateTime();
+        $imageName = $date->getTimestamp() . "_" . $userId . "." . $fileExtension;
+        $fileTmpName = $_FILES['pic_file']['tmp_name'];
+        $url = "https://www.googleapis.com/upload/storage/v1/b/" . $GLOBALS["bucketName"] . "/o?uploadType=media&name=" . $imageName . "&key=AIzaSyD4uv3scHBAr3JLeOZXHrRLf9PYcJTlxz0";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($fileTmpName));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: image/' . $fileExtension));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // unsecure 
+        $content = curl_exec($ch);
+        if (FALSE === $content)
+            throw new Exception(curl_error($ch), curl_errno($ch));
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if (strcmp($httpcode, "200") === 0) {
+            return $imageName;
+        }
+    } catch(Exception $e) {
+        returnError($e->getMessage());
+    }   
 }
 
 function get_gcloud_image_upload_url($userId) {
