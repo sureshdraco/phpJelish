@@ -9,6 +9,7 @@ define('DIR', 'http://domain.com/');
 define('SITEEMAIL', 'noreply@domain.com');
 // get the HTTP method, path and body of the request
 $method = $_SERVER['REQUEST_METHOD'];
+
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
 $gCloud = getenv('ENVIRONMENT') === 'google';
@@ -31,7 +32,6 @@ function get_image_upload_url($userId) {
 function get_aws_image_upload_url($userId) {
     $imageNames = array();
     foreach($_FILES as $file) {
-        var_dump($file);
         $fileName = $file['name'];
         $fileExtension = strtolower(end(explode('.', $fileName)));
         try  {
@@ -238,7 +238,8 @@ function build_db_schema($dbname) {
         userPassword VARCHAR(255) NULL,             
         userExternalId VARCHAR(255) NULL,           
         userPictFilename VARCHAR(255) NULL,
-        comments VARCHAR(255) NULL
+        comments VARCHAR(255) NULL,
+        activeSession VARCHAR(255) NULL
     )";
     if ($mysqli->query($sql) === true)
         echo("Table USERS created successfully\n");
@@ -757,9 +758,9 @@ function insert_sample_records($dbname) {
 //  User Info Tables
 //  ====================
 //  Users
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, userPictFilename, comments) VALUES
-        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', ''),
-        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '')
+    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, userPictFilename, comments, activeSession) VALUES
+        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', '', ''),
+        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -1879,10 +1880,10 @@ function add_user($dbname, $userJSON) {
     }
     if ($flag)
         returnError('User with this email already exists');
-//die;      
+    $passwordHash = password_hash($userJSON['userPassword'], PASSWORD_BCRYPT);    
     $uploadedTime = time();
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments) VALUES
-        ('" . $uploadedTime . "', '', '', '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $userJSON['userPassword'] . "', '', '')";
+    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, activeSession) VALUES
+        ('" . $uploadedTime . "', '', '', '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $passwordHash . "', '', '', '')";
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
@@ -2367,44 +2368,67 @@ function get_user_picture($dbname, $userId) {
     returnResponse($imageRes);
 }
 
-function login($dbname, $username, $password) {
-    include('login/classes/user.php');
-    include('login/classes/phpmailer/mail.php');
-    try {
-        //create PDO connection
-        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $dbname, $GLOBALS['username'], $GLOBALS['password']);
-        //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
-        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-    } catch (PDOException $e) {
-        //show error
-        echo '<p class="bg-danger">' . $e->getMessage() . '</p>';
-        exit;
-    }
-    $user = new User($db);
-    if (!isset($username))
-        $error[] = "Please fill out all fields";
-    if (!isset($password))
-        $error[] = "Please fill out all fields";
+function login($dbname, $userEmail, $password) {
 
-    if ($user->isValidUsername($username)) {
-        if (!isset($password)) {
-            $error[] = 'A password must be entered';
-        }
-        if ($user->login($username, $password)) {
-            
-        } else {
-            $error[] = 'Wrong username or password or your account has not been activated.';
-        }
-    } else {
-        $error[] = 'Usernames are required to be Alphanumeric, and between 3-16 characters long';
+    $mysqli = getConn();
+
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+
+    if (!isset($userEmail) || !isset($password))
+        returnError("userEmail and password cant be empty");
+
+    $sql = "SELECT userPassword, userExternalId FROM users WHERE userEmail ='" . $userEmail . "'";
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        returnError($mysqli->error);
+    if(mysqli_num_rows($res) > 1)
+        returnError('more than one user found with same email');
+
+    while ($row = mysqli_fetch_assoc($res)) {
+        $res->close();
+        if (password_verify($password, $row["userPassword"])) {
+            $loginTime = time();
+            session_start();
+            $_SESSION["externalId"] = $row["userExternalId"];
+            $_SESSION["session"] = hash('sha256', $loginTime . session_id());
+            $sql = "UPDATE users SET activeSession = '" . session_id() . "' , updatedTime = " . $loginTime . " WHERE userExternalId = '" . $row["userExternalId"] . "'";
+            $res = $mysqli->query($sql);
+            if ($res === false)
+                returnError($mysqli->error);
+            returnResponse("login successfull");
+        } else { 
+            returnError("wrong userName or Password");
+        } 
     }
-    if (empty($error)) {
-        $response = "success";
-    } else {
-        $response = $error;
+
+}
+
+function logout() {
+    session_destroy();
+    returnResponse('logout successfull');
+}
+
+function verify_user_session() {
+
+    $mysqli = getConn();
+
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+    
+    $sql = "SELECT activeSession, updatedTime FROM users WHERE userExternalId ='" . $_SESSION["externalId"] . "'";
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        returnError($mysqli->error);
+    if(mysqli_num_rows($res) > 1)
+        returnError('more than one user found with same session is');
+    while ($row = mysqli_fetch_assoc($res)) {
+        if(hash('sha256', $row["updatedTime"] . session_id()) === $_SESSION["session"]) {
+            return true;
+        } 
+        session_destroy();
+        return false;
     }
-    echo json_encode($response);
 }
 
 function signup($dbname, $email, $username, $password, $confirmPassword) {
@@ -2511,11 +2535,10 @@ function signup($dbname, $email, $username, $password, $confirmPassword) {
     }
 
     if (empty($error)) {
-        $response = "success";
+        return "success";
     } else {
-        $response = $error;
+        returnError($error);
     }
-    echo json_encode($response);
 }
 
 function activation($dbname) {
@@ -2588,14 +2611,19 @@ function main() {
     $cfg = json_decode(file_get_contents('php://input'), true);
     $cfg['dbname'] = "glendor";
 
-    if ($action == "get_temp_url")
-        storageURL($cfg['fileName']);
     if ($action == "login")
-        login($cfg['dbname'], $cfg['userName'], $cfg['password']);
+        return login($cfg['dbname'], $cfg['userEmail'], $cfg['userPassword']);
     if ($action == "activation")
-        activation($cfg['dbname']);
+        return activation($cfg['dbname']);
     if ($action == "signup")
-        signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
+        return signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
+    if ($action == "build_db_schema")
+        return build_db_schema($cfg['dbname']);
+    if ($action == "insert_sample_records")
+        return insert_sample_records($cfg['dbname']);
+        // newly added functions 
+    if ($action == "add_user")
+        return add_user($cfg['dbname'], $cfg['userJSON']);
 
     //  Auth
     if (isset($_POST['userId'])) {
@@ -2608,10 +2636,13 @@ function main() {
         $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
     }
 
-    if ($action == "build_db_schema")
-        build_db_schema($cfg['dbname']);
-    if ($action == "insert_sample_records")
-        insert_sample_records($cfg['dbname']);
+
+    session_start();
+    if (!isset($_SESSION["externalId"]) || !isset($_SESSION["session"]))
+        return returnError('Session data missing');
+    if (!verify_user_session())
+            return returnError('usersession is incorrect');
+
     if ($action == "get_doc_list")
         get_doc_list($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['dateFrom'], $cfg['dateTo']);
     if ($action == "get_doc_details")
@@ -2655,9 +2686,6 @@ function main() {
     if ($action == "get_image_upload_url")
         get_image_upload_url();
 
-    // newly added functions 
-    if ($action == "add_user")
-        add_user($cfg['dbname'], $cfg['userJSON']);
     if ($action == "mod_user")
         mod_user($cfg['dbname'], $cfg['userId'], $cfg['userJSON']);
     if ($action == "get_user_id")
@@ -2684,212 +2712,8 @@ function main() {
         mod_user_picture($cfg['dbname'], $_POST['userId']);
     if ($action == "get_user_picture")
         get_user_picture($cfg['dbname'], $cfg['userId']);
-}
-
-$cfg = array();
-$cfg['action'] = $argv[1];
-
-//echo ("came to DBProc\n");
-//die();
-if ($cfg['action'] == "build_db_schema") {
-    $cfg['dbname'] = $argv[2];
-    if ($argc != 3) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php build_db_schema <dbname>");
-    }
-}
-if ($cfg['action'] == "insert_sample_records") {
-    $cfg['dbname'] = $argv[2];
-    if ($argc != 3) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php insert_sample_records <dbname>");
-    }
-}
-if ($cfg['action'] == "get_doc_list") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['dateFrom'] = $argv[5];
-    $cfg['dateTo'] = $argv[6];
-    if ($argc != 7) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_doc_list <dbname> <userId> <participantId> <dateFrom> <dateTo>");
-    }
-}
-if ($cfg['action'] == "get_doc_details") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['docId'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_doc_details <dbname> <userId> <participantId> <docId>");
-    }
-}
-if ($cfg['action'] == "get_doc_items") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['docId'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_doc_items <dbname> <userId> <participantId> <docId>");
-    }
-}
-if ($cfg['action'] == "get_home_page_texts") {
-    $cfg['dbname'] = $argv[2];
-    if ($argc != 3) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_home_page_texts <dbname>");
-    }
-}
-if ($cfg['action'] == "get_glendor_snapshot") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['eobOnly'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_glendor_snapshot <dbname> <userId> <participantId> <eobOnly>");
-    }
-}
-if ($cfg['action'] == "get_notes") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['docId'] = $argv[4];
-    $cfg['participantId'] = $argv[5];
-    $cfg['particInsPlanId'] = $argv[6];
-    if ($argc != 7) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_notes <dbname> <userId> <docId> <participantId> <particInsPlanId>");
-    }
-}
-if ($cfg['action'] == "get_partic_ins_plans") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    if ($argc != 5) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_partic_ins_plans <dbname> <userId> <participantId>");
-    }
-}
-if ($cfg['action'] == "get_participants") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    if ($argc != 5) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_participants <dbname> <userId> <participantId>");
-    }
-}
-if ($cfg['action'] == "get_particproviders") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    if ($argc != 5) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php get_particproviders <dbname> <userId> <participantId>");
-    }
-}
-if ($cfg['action'] == "add_participant") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantJSON'] = $argv[4];
-    if ($argc != 5) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php add_participant <dbname> <userId> <participantJSON>");
-    }
-}
-if ($cfg['action'] == "mod_participant") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['participantJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_participant <dbname> <userId> <participantId> <participantJSON>");
-    }
-}
-if ($cfg['action'] == "add_partic_ins_plan") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['particInsPlanJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php add_partic_ins_plan <dbname> <userId> <participantId> <particInsPlanJSON>");
-    }
-}
-if ($cfg['action'] == "mod_partic_ins_plan") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['particInsPlanId'] = $argv[4];
-    $cfg['particInsPlanJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_partic_ins_plan <dbname> <userId> <particInsPlanId> <particInsPlanJSON>");
-    }
-}
-if ($cfg['action'] == "add_partic_provider") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['particProviderJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php add_partic_provider <dbname> <userId> <particInsPlanId> <particInsPlanJSON>");
-    }
-}
-if ($cfg['action'] == "mod_partic_provider") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['particProviderId'] = $argv[4];
-    $cfg['particProviderJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_partic_provider <dbname> <userId> <particProviderId> <particProviderJSON>");
-    }
-}
-if ($cfg['action'] == "add_note") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['participantId'] = $argv[4];
-    $cfg['docId'] = $argv[5];
-    $cfg['noteJSON'] = $argv[6];
-    if ($argc != 7) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php add_note <dbname> <userId> <docId> <noteJSON>");
-    }
-}
-if ($cfg['action'] == "mod_note") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['noteId'] = $argv[4];
-    $cfg['noteJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_note <dbname> <userId> <noteId> <noteJSON>");
-    }
-}
-if ($cfg['action'] == "mod_doc") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['docId'] = $argv[4];
-    $cfg['docJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_doc <dbname> <userId> <docId> <docJSON>");
-    }
-}
-if ($cfg['action'] == "mod_docitem") {
-    $cfg['dbname'] = $argv[2];
-    $cfg['userId'] = $argv[3];
-    $cfg['docitemId'] = $argv[4];
-    $cfg['docitemJSON'] = $argv[5];
-    if ($argc != 6) {
-        print ("DBProc\n");
-        die("Usage: php -f DBProc.php mod_docitem <dbname> <userId> <docitemId> <docitemJSON>");
-    }
+    if ($action == "logout")
+        logout();
 }
 
 main();
