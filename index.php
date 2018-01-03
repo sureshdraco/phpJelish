@@ -52,14 +52,12 @@ function get_aws_image_upload_url($userId) {
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             if (strcmp($httpcode, "200") === 0) {
-                echo $imageName;
                 array_push($imageNames, $imageName);
             }
         } catch(Exception $e) {
             returnError($e->getMessage());
         }
     }
-    var_dump($imageNames);
     return implode(",", $imageNames);
 }
 
@@ -1373,7 +1371,7 @@ function log_new_record($dbname, $tableName, $record) {
 
     foreach ($record as $rkey => $r) {
         $sql = "INSERT INTO logs (uploadedTime, tableName, recordId, fieldName, action, oldValue, newValue) VALUES
-                                 ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . $record['id'] . "', '" . $rkey . "', 'new', '', '" . $r . "')";
+                                 ('" . $record['uploadedTime'] . "', '" . $tableName . "', '" . intval($record['id']) . "', '" . $rkey . "', 'new', '', '" . $r . "')";
         $res = $mysqli->query($sql);
         if ($res === false)
             returnError($mysqli->error);
@@ -1426,7 +1424,7 @@ function add_participant($dbname, $userId, $participantJSON) {
     $participantJSON['particPictFilename'] = get_image_upload_url($userId);
 
     $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
-        ('" . $uploadedTime . "', '', '', '', '" . $userId . "', '" . $userName . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
+        ('" . $uploadedTime . "', 0, 0, '', '" . $userId . "', '" . $userName . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
 
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -2409,19 +2407,20 @@ function logout() {
     returnResponse('logout successfull');
 }
 
-function verify_user_session() {
+function verify_user_session($userId) {
 
     $mysqli = getConn();
 
     if ($mysqli === false)
         returnError('Sql Connection error');
     
-    $sql = "SELECT activeSession, updatedTime FROM users WHERE userExternalId ='" . $_SESSION["externalId"] . "'";
+    $sql = "SELECT activeSession, updatedTime FROM users WHERE id ='" . $userId . "'";
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
     if(mysqli_num_rows($res) > 1)
         returnError('more than one user found with same session is');
+
     while ($row = mysqli_fetch_assoc($res)) {
         if(hash('sha256', $row["updatedTime"] . session_id()) === $_SESSION["session"]) {
             return true;
@@ -2624,6 +2623,8 @@ function main() {
         // newly added functions 
     if ($action == "add_user")
         return add_user($cfg['dbname'], $cfg['userJSON']);
+    if ($action == "logout")
+        return logout();
 
     //  Auth
     if (isset($_POST['userId'])) {
@@ -2640,7 +2641,7 @@ function main() {
     session_start();
     if (!isset($_SESSION["externalId"]) || !isset($_SESSION["session"]))
         return returnError('Session data missing');
-    if (!verify_user_session())
+    if (!verify_user_session($cfg['userId']))
             return returnError('usersession is incorrect');
 
     if ($action == "get_doc_list")
@@ -2661,10 +2662,8 @@ function main() {
         get_participants($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
     if ($action == "get_particproviders")
         get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
-    if ($action == "add_participant") {
-        $cfg = json_decode($_POST["participant"], true);
-        add_participant($cfg['dbname'], $cfg['userId'], $cfg["participantJSON"]);
-    }
+    if ($action == "add_participant")
+        add_participant($cfg['dbname'], $cfg['userId'], json_decode($_POST["participantJSON"], true));
     if ($action == "mod_participant")
         mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
     if ($action == "add_partic_ins_plan")
@@ -2712,8 +2711,6 @@ function main() {
         mod_user_picture($cfg['dbname'], $_POST['userId']);
     if ($action == "get_user_picture")
         get_user_picture($cfg['dbname'], $cfg['userId']);
-    if ($action == "logout")
-        logout();
 }
 
 main();
