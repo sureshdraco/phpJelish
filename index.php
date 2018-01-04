@@ -9,11 +9,10 @@ define('DIR', 'http://domain.com/');
 define('SITEEMAIL', 'noreply@domain.com');
 // get the HTTP method, path and body of the request
 $method = $_SERVER['REQUEST_METHOD'];
-
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
 $gCloud = getenv('ENVIRONMENT') === 'google';
-$dbName = 'glendor';
+$dbName = 'glendor_gcloud';
 $hostName = 'localhost';
 $userName = 'root';
 $password = 'hercules15';
@@ -32,6 +31,7 @@ function get_image_upload_url($userId) {
 function get_aws_image_upload_url($userId) {
     $imageNames = array();
     foreach($_FILES as $file) {
+//var_dump($file);
         $fileName = $file['name'];
         $fileExtension = strtolower(end(explode('.', $fileName)));
         try  {
@@ -52,12 +52,14 @@ function get_aws_image_upload_url($userId) {
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             if (strcmp($httpcode, "200") === 0) {
+                echo $imageName;
                 array_push($imageNames, $imageName);
             }
         } catch(Exception $e) {
             returnError($e->getMessage());
         }
     }
+//var_dump($imageNames);
     return implode(",", $imageNames);
 }
 
@@ -163,7 +165,7 @@ function returnResponse($result) {
     echo json_encode($resultObject);
 }
 
-function get_userinternalid($dbname, $userExternalId) {
+function get_userinternalid($userExternalId) {
     $mysqli = getConn();
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -182,7 +184,7 @@ function get_userinternalid($dbname, $userExternalId) {
     return ($userId);
 }
 
-function verify_userexternalid($dbname, $userExternalId) {
+function verify_userexternalid($userExternalId) {
     $mysqli = getConn();
     if ($mysqli === false)
         returnError('Sql Connection error');
@@ -201,18 +203,24 @@ function verify_userexternalid($dbname, $userExternalId) {
     return ($flag);
 }
 
-function build_db_schema($dbname) {
+function build_db_schema() {
+    if ($GLOBALS['gCloud']) {
+        $db = getenv('DB_NAME');
+    } else {
+        $db = $GLOBALS['dbName'];
+    }
+    
     $conn = getConn();
     if ($conn === false)
         returnError($conn->error);
-    if ($conn->query("DROP DATABASE $dbname") === FALSE) {
+    if ($conn->query("DROP DATABASE $db") === FALSE) {
         die("Could not drop database: $conn->error [$conn->errno]");
     }
-    if ($conn->query("CREATE DATABASE IF NOT EXISTS $dbname") === FALSE) {
+    if ($conn->query("CREATE DATABASE IF NOT EXISTS $db") === FALSE) {
         die("Could not create database: $conn->error [$conn->errno]");
     }
 
-    if ($conn->select_db($dbname) === FALSE) {
+    if ($conn->select_db($db) === FALSE) {
         die("Could not select database: $conn->error [$conn->errno]");
     }
     $mysqli = $conn;
@@ -235,7 +243,7 @@ function build_db_schema($dbname) {
         userEmail VARCHAR(255) NULL,
         userPassword VARCHAR(255) NULL,             
         userExternalId VARCHAR(255) NULL,           
-        userPictFilename VARCHAR(255) NULL,
+        imageId INT NULL,
         comments VARCHAR(255) NULL,
         activeSession VARCHAR(255) NULL
     )";
@@ -256,7 +264,7 @@ function build_db_schema($dbname) {
         gender VARCHAR(255) NULL,
         age VARCHAR(255) NULL,
         relatToUser VARCHAR(255) NULL,
-        particPictFilename VARCHAR(255) NULL,
+        imageId INT NULL,
         comments VARCHAR(255) NULL
     )";
     if ($mysqli->query($sql) === true)
@@ -350,7 +358,7 @@ function build_db_schema($dbname) {
         docAmount VARCHAR(255) NULL,
         indivDeductPaid VARCHAR(255) NULL,
         familyDeductPaid VARCHAR(255) NULL,
-        imageFileName VARCHAR(255) NULL,
+        imageId INT NULL,
         comments VARCHAR(255) NULL
     )";
     if ($mysqli->query($sql) === true)
@@ -406,14 +414,13 @@ function build_db_schema($dbname) {
         uploadedTime INT NULL,
         updatedTime INT NULL,
         deleted INT NULL,
+        fullyUploaded INT NULL,
         imageType VARCHAR(255) NULL,
-        docId INT NULL,
         userId INT NULL,
         userName VARCHAR(255) NULL,
-        participantId INT NULL,
-        participantName VARCHAR(255) NULL,
-        imageName VARCHAR(255) NULL,
-        imageFileName VARCHAR(255) NULL,
+        tableName VARCHAR(255) NULL,
+        recorId INT NULL,
+        totPages INT NULL,
         comments VARCHAR(255) NULL
     )";
     if ($mysqli->query($sql) === true)
@@ -428,13 +435,9 @@ function build_db_schema($dbname) {
         updatedTime INT NULL,
         deleted INT NULL,
         imagePageType VARCHAR(255) NULL,
-        docId INT NULL,
         userId INT NULL,
         userName VARCHAR(255) NULL,
-        participantId INT NULL,
-        participantName VARCHAR(255) NULL,
         imageId INT NULL,
-        imageName VARCHAR(255) NULL,
         pageNum INT NULL,
         imageFileName VARCHAR(255) NULL,
         comments VARCHAR(255) NULL
@@ -457,7 +460,6 @@ function build_db_schema($dbname) {
         participantName VARCHAR(255) NULL,
         particInsPlanId INT NULL,
         particInsPlanName VARCHAR(255) NULL,
-        docType VARCHAR(255) NULL,
         tableName VARCHAR(255) NULL,
         recordId INT NULL,
         noteText TEXT NULL,
@@ -747,7 +749,7 @@ function build_db_schema($dbname) {
     $mysqli->close();
 }
 
-function insert_sample_records($dbname) {
+function insert_sample_records() {
     echo("Started insert_sample_records...\n");
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = getConn();
@@ -756,9 +758,9 @@ function insert_sample_records($dbname) {
 //  User Info Tables
 //  ====================
 //  Users
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, userPictFilename, comments, activeSession) VALUES
-        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', '', ''),
-        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '', '')
+    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, activeSession) VALUES
+        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', ''),
+        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -767,17 +769,17 @@ function insert_sample_records($dbname) {
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 
 //  Participants
-    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename, comments) VALUES
-        (0, 0, 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', '', ''),
-        (0, 0, 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', '', ''),
-        (0, 0, 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', '', ''),
-        (0, 0, 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', '', ''),
-        (0, 0, 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', '', ''),
-        (0, 0, 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', '', ''),
-        (0, 0, 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', '', ''),
-        (0, 0, 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', '', ''),
-        (0, 0, 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', '', ''),
-        (0, 0, 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '', '')
+    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, comments) VALUES
+        (0, 0, 0, '', 1, 'Jane', 'Jane', 'F', 35, 'self', ''),
+        (0, 0, 0, '', 1, 'Jane', 'John', 'M', 38, 'husband', ''),
+        (0, 0, 0, '', 1, 'Jane', 'Brendan', 'M', 12, 'son', ''),
+        (0, 0, 0, '', 1, 'Jane', 'Ashley', 'F', 10, 'daughter', ''),
+        (0, 0, 0, '', 1, 'Jane', 'Barbara', 'F', 67, 'mother', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Mary', 'F', 45, 'self', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Jake', 'M', 46, 'husband', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'James', 'M', 37, 'brother', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Jake Sr.', 'M', 72, 'father in law', ''),
+        (0, 0, 0, '', 2, 'Mary123', 'Maria', 'F', 67, 'mother in law', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -844,20 +846,20 @@ function insert_sample_records($dbname) {
 
 //  Docs
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, userId, userName, 
-                              participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageFileName, comments) VALUES
-        (1505583600, 0, 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505483600', '275.00', '', '', '', ''),
-        (1506593612, 0, 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506592612', '25.00', '', '', '', ''),
-        (1506693612, 0, 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506692612', '125.00', '', '', '', ''),
-        (1504077878, 0, 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', 3, 'Cigna PPO 5000', '1504067878', '1500.00', '', '', '', ''),
-        (1503297078, 0, 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', 9, 'Cigna EPO 2500', '1503287078', '275.00', '785.34', '1200.47', '', ''),
-        (1504297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', 13, 'HMO 2000', '1504287078', '275.00', '234.34', '804.50', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505277078', '275.00', '123.55', '314.00', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505477078', '475.00', '223.55', '514.00', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505577078', '575.00', '323.55', '614.00', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', ''),
-        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', '', '')
+                              participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
+        (1505583600, 0, 0, 'Bill', 'uploaded', 'please review', '', 'present', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505483600', '275.00', '', '', 0, ''),
+        (1506593612, 0, 0, 'Bill', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506592612', '25.00', '', '', 0, ''),
+        (1506693612, 0, 0, 'Bill', 'uploaded', '', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1506692612', '125.00', '', '', 0, ''),
+        (1504077878, 0, 0, 'Bill', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 3, 'Brendan', 3, 'Cigna PPO 5000', '1504067878', '1500.00', '', '', 0, ''),
+        (1503297078, 0, 0, 'EOB', 'please rescan', '', '', '', 2, 'Mary123', 7, 'Jake', 9, 'Cigna EPO 2500', '1503287078', '275.00', '785.34', '1200.47', 0, ''),
+        (1504297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', 2, 'Mary123', 9, 'James Sr.', 13, 'HMO 2000', '1504287078', '275.00', '234.34', '804.50', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', 'present', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505277078', '275.00', '123.55', '314.00', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505477078', '475.00', '223.55', '514.00', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', '1505577078', '575.00', '323.55', '614.00', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 1, 'Jane', 1, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', 'completed', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', 0, ''),
+        (1505297078, 0, 0, 'EOB', 'uploaded', 'reviewed', '', '', 1, 'Jane', 2, 'John', 2, 'Cigna PPO 5000', '1505377078', '375.00', '123.55', '414.00', 0, '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -906,45 +908,43 @@ function insert_sample_records($dbname) {
     else
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 
-
 //  Images
-    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, imageType, docId, userId, userName, participantId, participantName, imageName, comments) VALUES
-        (1505583600, 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', ''),
-        (1506593612, 0, 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', ''),
-        (1506693612, 0, 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', ''),
-        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', ''),
-        (1503297078, 0, 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', ''),
-        (1504297078, 0, 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', ''),
-        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', '')
+    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, fullyUploaded, imageType, userId, userName, tableName, recorId, totpages, comments) VALUES
+        (1505583600, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 1, 2, ''),
+        (1506593612, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 2, 1, ''),
+        (1506693612, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 3, 1, ''),
+        (1504077878, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 3, 3, ''),
+        (1503297078, 0, 0, 0, 'EOB', 2, 'Mary123','docs', 5, 1, ''),
+        (1504297078, 0, 0, 0, 'EOB', 2, 'Mary123','docs', 6, 1, ''),
+        (1505297078, 0, 0, 0, 'EOB', 1, 'Jane',   'docs', 7, 4, '')
     ";
-
+/*
     if ($mysqli->query($sql) === true)
         echo "IMAGES records inserted successfully\n";
     else
         die("ERROR: Could not able to execute $sql. " . $mysqli->error);
-
-
+*/
 //  ImagePages
-    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, docId, userId, userName, participantId, participantName, imageName, pageNum, imageFileName, comments) VALUES
-        (1505583600, 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 1, '1_Jane_Bill_1_1', ''),
-        (1505583600, 0, 0, 'Bill', 1, 1, 'Jane', 1, 'Jane', 'Bill_Jane_Jane_1', 2, '1_Jane_Bill_1_2', ''),
-        (1506593612, 0, 0, 'Bill', 2, 1, 'Jane', 2, 'John', 'Bill_Jane_John_1', 1, '1_John_Bill_1_1', ''),
-        (1506693612, 0, 0, 'Bill', 3, 1, 'Jane', 2, 'John', 'Bill_Jane_John_2', 1, '1_John_Bill_2_1', ''),
-        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 1, '1_Brendan_Bill_1_1',''),
-        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 2, '1_Brendan_Bill_1_2',''),
-        (1504077878, 0, 0, 'Bill', 4, 1, 'Jane', 3, 'Brendan', 'Bill_Jane_Brendan_1', 3, '1_Brendan_Bill_1_3',''),
-        (1503297078, 0, 0, 'EOB', 5, 2, 'Mary123', 7, 'Jake', 'EOB_Mary123_Jake_1', 1, '2_Jake_EOB_1_1', ''),
-        (1504297078, 0, 0, 'EOB', 6, 2, 'Mary123', 9, 'James Sr.', 'EOB_Mary123_James_Sr._1', 1, '2_JamesSr_EOB_1_1', ''),
-        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 1, '1_Ashley_Bill_1_1', ''),
-        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 2, '1_Ashley_Bill_1_2', ''),
-        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 3, '1_Ashley_Bill_1_3', ''),
-        (1505297078, 0, 0, 'EOB', 7, 1, 'Jane', 4, 'Ashley', 'Bill_Jane_Ashley_1', 4, '1_Ashley_Bill_1_4', '')
+    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, userId, userName, imageId, pageNum, imageFileName, comments) VALUES
+        (1505583600, 0, 0, 'jpg', 1, 'Jane',    1, 1, '', ''),
+        (1505583600, 0, 0, 'jpg', 1, 'Jane',    1, 2, '', ''),
+        (1506593612, 0, 0, 'jpg', 1, 'Jane',    2, 1, '', ''),
+        (1504077878, 0, 0, 'jpg', 1, 'Jane',    3, 1, '',''),
+        (1504077878, 0, 0, 'jpg', 1, 'Jane',    3, 2, '', ''),
+        (1504077878, 0, 0, 'jpg', 1, 'Jane',    3, 3, '', ''),
+        (1503297078, 0, 0, 'jpg', 2, 'Mary123', 5, 1, '', ''),
+        (1504297078, 0, 0, 'jpg', 2, 'Mary123', 6, 1, '', ''),
+        (1505297078, 0, 0, 'jpg', 1, 'Jane',    7, 1, '', ''),
+        (1505297078, 0, 0, 'jpg', 1, 'Jane',    7, 2, '', ''),
+        (1505297078, 0, 0, 'jpg', 1, 'Jane',    7, 3, '', ''),
+        (1505297078, 0, 0, 'jpg', 1, 'Jane',    7, 4, '', '')
     ";
-
+/*
     if ($mysqli->query($sql) === true)
         echo "IMAGEPAGES records inserted successfully\n";
     else
         die("ERROR: Could not execute $sql. " . $mysqli->error);
+*/
 
 //  Codes
     $sql = "INSERT INTO codes (uploadedTime, updatedTime, deleted, codeType, code, codeDescr, codeDescrType, codeNormDescr, codeNormRule, comments) VALUES
@@ -991,12 +991,12 @@ function insert_sample_records($dbname) {
 
 //  Notes
     $sql = "INSERT INTO notes (uploadedTime, updatedTime, deleted, noteType, userId, userName, participantId, participantName, 
-                               particInsPlanId, particInsPlanName, doctype, tableName, recordId, noteText, comments) VALUES
-        (1505584600, 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'Bill', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
-        (1505584600, 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'Bill', 'docs', 1, 'Need to ask doctor why the bill is so high', ''),
-        (1506595612, 0, 0, '', 1, 'Jane', 2, 'John', 0, '', 'Bill', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
-        (1505298078, 0, 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', ''),
-        (1505298078, 0, 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'EOB', 'docs', 7, 'Call Cigna to negotiate the rejected procedure', '')
+                               particInsPlanId, particInsPlanName, tableName, recordId, noteText, comments) VALUES
+        (1505584600, 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'docs', 1, 'Jane still complaining for pain. Should she ask for a second opinion?', ''),
+        (1505584600, 0, 0, '', 1, 'Jane', 1, 'Jane', 0, '', 'docs', 1, 'Need to ask doctor why the bill is so high', ''),
+        (1506595612, 0, 0, '', 1, 'Jane', 2, 'John', 0, '', 'docs', 2, 'Johns throat finally is not swallen. Need to write a thank you note to the doctor', ''),
+        (1505298078, 0, 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'docs', 7, 'Why the deductible (Ashleys and for the whole family) shown as paid is so low? I paid much more this year for Ashley already. Neeed to call Cigna', ''),
+        (1505298078, 0, 0, '', 1, 'Jane', 4, 'Ashley', 4, 'Cigna PPO 5000', 'docs', 7, 'Call Cigna to negotiate the rejected procedure', '')
     ";
 
     if ($mysqli->query($sql) === true)
@@ -1019,7 +1019,7 @@ function insert_sample_records($dbname) {
     $mysqli->close();
 }
 
-function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
+function get_doc_list($userId, $participantId, $dateFrom, $dateTo) {
     $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
@@ -1054,7 +1054,7 @@ function get_doc_list($dbname, $userId, $participantId, $dateFrom, $dateTo) {
     returnResponse($docListRes);
 }
 
-function get_doc_details($dbname, $userId, $participantId, $docId) {
+function get_doc_details($userId, $participantId, $docId) {
     $mysqli = getConn();
 
     if ($mysqli === false)
@@ -1064,7 +1064,7 @@ function get_doc_details($dbname, $userId, $participantId, $docId) {
     if (empty($participantId))
         returnError('participantId is empty');
     if (empty($docId))
-        returnError('docid is empty');
+        returnError('docId is empty');
 
     $sql = "SELECT id, docType FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
@@ -1076,13 +1076,9 @@ function get_doc_details($dbname, $userId, $participantId, $docId) {
         }
         $res->close();
     }
-    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, userName, participantId, participantName, docTime, docAmount ";
-//  if (!strcasecmp ($type, "EOB"))
-    $sql .= ", particInsPlanName, indivDeductPaid, familyDeductPaid ";
-
-    $sql .= ", imageFileName FROM docs WHERE deleted = 0 AND id = " . $docId;
-    $sql .= " AND userId = " . $userId;
-    $sql .= " AND participantId = " . $participantId;
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, userName, participantId, participantName, 
+                    docTime, docAmount, particInsPlanName, indivDeductPaid, familyDeductPaid, imageId
+                    FROM docs WHERE deleted = 0 AND id = ".$docId." AND userId = '".$userId."' AND participantId = " . $participantId;
     $res = $mysqli->query($sql);
     $docsDetailRes = array();
     if (!($res === false)) {
@@ -1097,7 +1093,7 @@ function get_doc_details($dbname, $userId, $participantId, $docId) {
     returnResponse($docsDetailRes);
 }
 
-function get_doc_items($dbname, $userId, $participantId, $docId) {
+function get_doc_items($userId, $participantId, $docId) {
     $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
@@ -1143,7 +1139,7 @@ function get_doc_items($dbname, $userId, $participantId, $docId) {
     returnResponse($docItemRes);
 }
 
-function get_home_page_texts($dbname) {
+function get_home_page_texts() {
     $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
@@ -1163,7 +1159,7 @@ function get_home_page_texts($dbname) {
     returnResponse($homePageTextRes);
 }
 
-function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
+function get_glendor_snapshot($userId, $participantId, $eobOnly) {
     $mysqli = getConn();
 
 // Check connection
@@ -1234,7 +1230,7 @@ function get_glendor_snapshot($dbname, $userId, $participantId, $eobOnly) {
     returnResponse($snapshotRes);
 }
 
-function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
+function get_notes($userId, $docId, $participantId, $particInsPlanId) {
     $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
@@ -1278,7 +1274,7 @@ function get_notes($dbname, $userId, $docId, $participantId, $particInsPlanId) {
     returnResponse($noteRes);
 }
 
-function get_partic_ins_plans($dbname, $userId, $participantId) {
+function get_partic_ins_plans($userId, $participantId) {
     $mysqli = getConn();
 
     // Check connection
@@ -1306,16 +1302,14 @@ function get_partic_ins_plans($dbname, $userId, $participantId) {
     returnResponse($particInsPlanRes);
 }
 
-function get_participants($dbname, $userId, $participantId) {
+function get_participants($userId, $participantId) {
     $mysqli = getConn();
-
-    // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
 
-    $sql = "SELECT id, participantName, gender, age, relatToUser, particPictFilename FROM participants WHERE deleted = 0";
+    $sql = "SELECT id, participantName, gender, age, relatToUser, imageId FROM participants WHERE deleted = 0";
     $sql .= " AND userId = " . $userId;
     if (!empty($participantId))
         $sql .= " AND id = " . $participantId;
@@ -1324,17 +1318,15 @@ function get_participants($dbname, $userId, $participantId) {
     $participantRes = array();
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $row["particPictFilename"] = storageURL($row["particPictFilename"]);
             $participantRes[] = $row;
         }
         $res->close();
     }
-// Close connection
     $mysqli->close();
     returnResponse($participantRes);
 }
 
-function get_particproviders($dbname, $userId, $participantId) {
+function get_particproviders($userId, $participantId) {
     $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
@@ -1362,7 +1354,7 @@ function get_particproviders($dbname, $userId, $participantId) {
     returnResponse($particProviderRes);
 }
 
-function log_new_record($dbname, $tableName, $record) {
+function log_new_record($tableName, $record) {
     $mysqli = getConn();
 
     // Check connection
@@ -1380,7 +1372,7 @@ function log_new_record($dbname, $tableName, $record) {
     $mysqli->close();
 }
 
-function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
+function log_mod_record($tableName, $recordNew, $recordOld) {
     $mysqli = getConn();
     // Check connection
     if ($mysqli === false)
@@ -1397,16 +1389,24 @@ function log_mod_record($dbname, $tableName, $recordNew, $recordOld) {
     $mysqli->close();
 }
 
-function add_participant($dbname, $userId, $participantJSON) {
+function add_participant($userId, $participantJSON) {
     $mysqli = getConn();
-
-    // Check connection
+     
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
-    if (empty($participantJSON))
+    if (count($participantJSON) == 0)
         returnError('Empty participantJSON');
+
+    $sql = "SELECT * FROM participants WHERE deleted = 0 AND userId = '".$userId."' AND participantName = '".$participantJSON['participantName']."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL)
+            returnError('Participant with this name already exists');
+        $res->close();
+    }
 
     $uploadedTime = time();
 
@@ -1421,16 +1421,15 @@ function add_participant($dbname, $userId, $participantJSON) {
         $res->close();
     }
 
-    $participantJSON['particPictFilename'] = get_image_upload_url($userId);
-
-    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser, particPictFilename) VALUES
-        ('" . $uploadedTime . "', 0, 0, '', '" . $userId . "', '" . $userName . "', '" . $participantJSON['participantName'] . "', '" . $participantJSON['gender'] . "', '" . $participantJSON['age'] . "', '" . $participantJSON['relatToUser'] . "', '" . $participantJSON['particPictFilename'] . "')";
+    $sql = "INSERT INTO participants (uploadedTime, updatedTime, deleted, particType, userId, userName, participantName, gender, age, relatToUser) VALUES
+        ('".$uploadedTime."', 0, 0, '', '".$userId."', '".$userName."', '".$participantJSON['participantName']."', '".$participantJSON['gender']."', '".$participantJSON['age']."',
+         '" . $participantJSON['relatToUser']."')";
 
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
     $participantId = $mysqli->insert_id;
-    $sql = "SELECT uploadedTime, updatedTime, deleted, particType, userName, participantName, gender, age, relatToUser, particPictFilename 
+    $sql = "SELECT uploadedTime, updatedTime, deleted, particType, userName, participantName, gender, age, relatToUser
             FROM participants WHERE deleted = 0 AND id = " . $participantId;
     $res = $mysqli->query($sql);
     while ($record = $res->fetch_assoc()) {
@@ -1439,26 +1438,46 @@ function add_participant($dbname, $userId, $participantJSON) {
     $res->close();
 // Close connection
     $mysqli->close();
-    log_new_record($dbname, $tableName, $record);
+    log_new_record('participants', $record);
     $response["participantId"] = $participantId;
     returnResponse($response);
 }
 
-function mod_participant($dbname, $userId, $participantId, $participantJSON) {
+function mod_participant($userId, $participantId, $participantJSON) {
     $mysqli = getConn();
-
-    // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
-//var_dump($userId, $participantId, $participantJSON);  
     if (empty($userId))
         returnError('userId is empty');
     if (empty($participantId))
         returnError('participantId is empty');
     if (empty($participantJSON))
         returnError('participantJSON is empty');
-
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
+    
+    $sql = "SELECT id FROM participants WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$participantId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Participant with this id does not belong to the user with this id');
+        $res->close();
+    }
+    
+    $modparticname = "";
+    foreach ($participantJSON as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "participantName"))
+            $modparticname = $fieldvalue;
+    }   
+    $sql = "SELECT id FROM participants WHERE deleted = 0 AND userId = '".$userId."' AND participantName = '".$modparticname."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL)
+            returnError('Participant with this name already exists');
+        $res->close();
+    }
+    
+    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = ".$participantId;
     $res = $mysqli->query($sql);
     $participantOld = array();
     if (!($res === false)) {
@@ -1468,35 +1487,54 @@ function mod_participant($dbname, $userId, $participantId, $participantJSON) {
         $res->close();
     }
     $participantJSON['updatedTime'] = time();
-//    $participantJSON['id'] = $participantId;
     $sql = "UPDATE participants SET";
-//var_dump($participantJSON);   
     foreach ($participantJSON as $fieldname => $fieldvalue) {
         if (!strcasecmp($fieldname, "userId"))
             continue;
-        $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
+        if (!strcasecmp($fieldname, "participantId"))
+            continue;
+        $sql .= " ".$fieldname."='".$fieldvalue."',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
     $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $participantId);
     $res = $mysqli->query($sql);
-//var_dump($sql);   
     if ($res === false)
         returnError($mysqli->error);
-// Close connection
+    
+    if (!empty($modparticname)) {
+        $sql = "UPDATE particinsplans SET participantName = '".$modparticname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $sql = "UPDATE particproviders SET participantName='".$modparticname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $sql = "UPDATE docs SET participantName = '".$modparticname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $sql = "UPDATE docitems SET participantName = '".$modparticname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $sql = "UPDATE notes SET participantName = '".$modparticname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+    }   
+    
     $mysqli->close();
-    log_mod_record($dbname, 'participants', $participantJSON, $participantOld);
+    log_mod_record('participants', $participantJSON, $participantOld);
     $response["participantId"] = $participantId;
     returnResponse($response);
 }
 
-function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSON) {
+function add_partic_ins_plan($userId, $participantId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
     $mysqli = getConn();
-
-    // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
-//var_dump($userId, $participantId, $particInsPlanJSON);    
     if (empty($userId))
         returnError('userId is empty');
     if (empty($participantId))
@@ -1504,8 +1542,26 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
     if (empty($particInsPlanJSON))
         returnError('particInsPlanJSON is empty');
 
+    $sql = "SELECT * FROM participants WHERE deleted = 0 AND userId='".$userId."' AND id = '".$participantId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Participant with this id for this user does not exist');
+        $res->close();
+    }
+
+    $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND userId='".$userId."' AND participantId = '".$participantId."' AND particInsPlanName = '".$particInsPlanJSON['particInsPlanName']."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL)
+            returnError('ParticInsPlan with this name already exists');
+        $res->close();
+    }
+
     $uploadedTime = time();
-    $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
+    $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userId = ".$userId." AND id = ".$participantId;
     $res = $mysqli->query($sql);
     $userName = "";
     $participantName = "";
@@ -1532,16 +1588,14 @@ function add_partic_ins_plan($dbname, $userId, $participantId, $particInsPlanJSO
     $res->close();
 // Close connection
     $mysqli->close();
-    log_new_record($dbname, $tableName, $record);
+    log_new_record('particinsplans', $record);
     $response["particInsPlanId"] = $particinsplanId;
     returnResponse($response);
 }
 
-function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJSON) {
+function mod_partic_ins_plan($userId, $particInsPlanId, $particInsPlanJSON) {
     $plan = $particInsPlanJSON;
     $mysqli = getConn();
-
-    // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
@@ -1550,6 +1604,40 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
         returnError('particInsPlanId is empty');
     if (empty($particInsPlanJSON))
         returnError('particInsPlanJSON is empty');
+    
+    $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND userId='".$userId."' AND id = '".$particInsPlanId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('ParticInsPlan with this id for this user does not exist');
+        $res->close();
+    }
+
+    $participantId = NULL;
+    $sql = "SELECT id, participantId FROM particinsplans WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$particInsPlanId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('ParticInsPlan with this id does not belong to any participants of the user with this id');
+        $participantId = $row['participantId'];
+        $res->close();
+    }
+
+    $modparticinsplanname = "";
+    foreach ($plan as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "particInsPlanName"))
+            $modparticinsplanname = $fieldvalue;
+    }   
+    $sql = "SELECT id, participantId FROM particinsplans WHERE deleted = 0 AND userId = '".$userId."' AND particInsPlanName = '".$modparticinsplanname."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL)
+            returnError('ParticInsPlan with this name already exists');
+        $res->close();
+    }
 
     $sql = "SELECT * FROM particinsplans WHERE deleted = 0 AND id = " . $particInsPlanId;
     $res = $mysqli->query($sql);
@@ -1567,6 +1655,8 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
     foreach ($plan as $fieldname => $fieldvalue) {
         if (!strcasecmp($fieldname, "userId"))
             continue;
+        if (!strcasecmp($fieldname, "particInsPlanId"))
+            continue;
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
@@ -1574,14 +1664,29 @@ function mod_partic_ins_plan($dbname, $userId, $particInsPlanId, $particInsPlanJ
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
-// Close connection
+
+    if (!empty($modparticinsplanname)) {
+        $sql = "UPDATE docs SET particInsPlanName = '".$modparticinsplanname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $sql = "UPDATE docitems SET particInsPlanName = '".$modparticinsplanname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $sql = "UPDATE notes SET particInsPlanName = '".$modparticinsplanname."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+    }
+    
     $mysqli->close();
-    log_mod_record($dbname, 'particinsplans', $plan, $particInsPlanOld);
+    log_mod_record('particinsplans', $plan, $particInsPlanOld);
     $response["particInsPlanId"] = $particInsPlanId;
     returnResponse($response);
 }
 
-function add_partic_provider($dbname, $userId, $participantId, $particProviderJSON) {
+function add_partic_provider($userId, $participantId, $particProviderJSON) {
     $provider = $particProviderJSON;
     $mysqli = getConn();
     if ($mysqli === false)
@@ -1592,6 +1697,24 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
         returnError('participantId is empty');
     if (empty($particProviderJSON))
         returnError('particProviderJSON is empty ');
+
+    $sql = "SELECT * FROM participants WHERE deleted = 0 AND userId='".$userId."' AND id = '".$participantId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Participant with this id for this user does not exist');
+        $res->close();
+    }
+
+    $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND userId='".$userId."' AND participantId = '".$participantId."' AND particProviderName = '".$particProviderJSON['particProviderName']."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL)
+            returnError('ParticProvider with this name for this user and this participant already exists');
+        $res->close();
+    }
 
     $uploadedTime = time();
     $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userId = " . $userId . " AND id = " . $participantId;
@@ -1623,15 +1746,14 @@ function add_partic_provider($dbname, $userId, $participantId, $particProviderJS
     $res->close();
 // Close connection
     $mysqli->close();
-    log_new_record($dbname, 'particproviders', $record);
+    log_new_record('particproviders', $record);
     $response["particProviderId"] = $particProviderId;
     returnResponse($response);
 }
 
-function mod_partic_provider($dbname, $userId, $particProviderId, $particProviderJSON) {
+function mod_partic_provider($userId, $particProviderId, $particProviderJSON) {
     $provider = $particProviderJSON;
     $mysqli = getConn();
-
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
@@ -1640,6 +1762,40 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
         returnError('particProviderId is empty');
     if (empty($particProviderJSON))
         returnError('particProviderJSON is empty');
+
+    $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND userId='".$userId."' AND id = '".$particProviderId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('ParticProvider with this id for this user does not exist');
+        $res->close();
+    }
+
+    $participantId = NULL;
+    $sql = "SELECT id, participantId FROM particproviders WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$particProviderId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('ParticProvider with this id does not belong to this participants of this user');
+        $participantId = $row['participantId'];
+        $res->close();
+    }
+
+    $modparticprovidername = "";
+    foreach ($provider as $fieldname => $fieldvalue) {
+        if (!strcasecmp($fieldname, "particProviderName"))
+            $modparticprovidername = $fieldvalue;
+    }   
+    $sql = "SELECT id FROM particproviders WHERE deleted = 0 AND userId = '".$userId."' AND particProviderName = '".$modparticprovidername."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL)
+            returnError('ParticProvider with this name already exists');
+        $res->close();
+    }
 
     $sql = "SELECT * FROM particproviders WHERE deleted = 0 AND id = " . $particProviderId;
     $res = $mysqli->query($sql);
@@ -1663,14 +1819,21 @@ function mod_partic_provider($dbname, $userId, $particProviderId, $particProvide
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
-// Close connection
+
+    if (!empty($modparticprovidername)) {
+        $sql = "UPDATE docitems SET particProviderName = '".$modparticprovidername."' WHERE userId='".$userId."' AND participantId='".$participantId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+    }   
+    
     $mysqli->close();
-    log_mod_record($dbname, 'particproviders', $provider, $particProviderOld);
+    log_mod_record('particproviders', $provider, $particProviderOld);
     $response["particProviderId"] = $particProviderId;
     returnResponse($response);
 }
 
-function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
+function add_note($userId, $participantId, $docId, $noteJSON) {
     $note = $noteJSON;
     $mysqli = getConn();
     if (empty($userId))
@@ -1681,6 +1844,15 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
         returnError('docId is empty');
     if (empty($noteJSON))
         returnError('noteJSON is empty');
+
+    $sql = "SELECT * FROM docs WHERE deleted = 0 AND userId='".$userId."' AND participantId = '".$participantId."' AND id = '".$docId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Doc with this id for this user and this participant does not exist');
+        $res->close();
+    }
 
     $uploadedTime = time();
     $sql = "SELECT username, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
@@ -1712,12 +1884,12 @@ function add_note($dbname, $userId, $participantId, $docId, $noteJSON) {
     $res->close();
 // Close connection
     $mysqli->close();
-    log_new_record($dbname, 'notes', $record);
+    log_new_record('notes', $record);
     $response["noteId"] = $noteId;
     returnResponse($response);
 }
 
-function mod_note($dbname, $userId, $noteId, $noteJSON) {
+function mod_note($userId, $noteId, $noteJSON) {
     $note = $noteJSON;
     $mysqli = getConn();
 
@@ -1730,6 +1902,15 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
         returnError('noteId is empty');
     if (empty($noteJSON))
         returnError('noteJSON is empty');
+
+    $sql = "SELECT * FROM notes WHERE deleted = 0 AND userId='".$userId."' AND id = '".$noteId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Note with this id for this user does not exist');
+        $res->close();
+    }
 
     $sql = "SELECT * FROM notes WHERE deleted = 0 AND id = " . $noteId;
     $res = $mysqli->query($sql);
@@ -1755,16 +1936,14 @@ function mod_note($dbname, $userId, $noteId, $noteJSON) {
         returnError($mysqli->error);
 // Close connection
     $mysqli->close();
-    log_mod_record($dbname, 'notes', $note, $noteOld);
+    log_mod_record('notes', $note, $noteOld);
     $response["noteId"] = $noteId;
     returnResponse($response);
 }
 
-function mod_doc($dbname, $userId, $docId, $docJSON) {
+function mod_doc($userId, $docId, $docJSON) {
     $doc = $docJSON;
     $mysqli = getConn();
-
-    // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
@@ -1773,6 +1952,15 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
         returnError('docId is empty');
     if (empty($docJSON))
         returnError('docJSON is empty');
+
+    $sql = "SELECT * FROM docs WHERE deleted = 0 AND userId='".$userId."' AND id = '".$docId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Doc with this id for this user does not exist');
+        $res->close();
+    }
 
     $sql = "SELECT * FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
@@ -1796,28 +1984,34 @@ function mod_doc($dbname, $userId, $docId, $docJSON) {
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
-// Close connection
     $mysqli->close();
-    log_mod_record($dbname, 'docs', $doc, $docOld);
+    log_mod_record('docs', $doc, $docOld);
     $response["docId"] = $docId;
     returnResponse($response);
 }
 
-function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
+function mod_docitem($userId, $docitemId, $docitemJSON) {
     $docitem = $docitemJSON;
     $mysqli = getConn();
-
-    // Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
-    if (empty($docItemId))
-        returnError('docItemId is empty');
+    if (empty($docitemId))
+        returnError('docitemId is empty');
     if (empty($docitemJSON))
         returnError('docitemJSON is empty');
 
-    $sql = "SELECT * FROM docitems WHERE deleted = 0 AND id = " . $docItemId;
+    $sql = "SELECT * FROM docitems WHERE deleted = 0 AND userId='".$userId."' AND id = '".$docitemId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('DocItem with this id for this user does not exist');
+        $res->close();
+    }
+    
+    $sql = "SELECT * FROM docitems WHERE deleted = 0 AND id = " . $docitemId;
     $res = $mysqli->query($sql);
     $docitemOld = array();
     if (!($res === false)) {
@@ -1827,7 +2021,7 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
         $res->close();
     }
     $docitem['updatedTime'] = time();
-    $docitem['id'] = $docItemId;
+    $docitem['id'] = $docitemId;
     $sql = "UPDATE docitems SET";
     foreach ($docitem as $fieldname => $fieldvalue) {
         if (!strcasecmp($fieldname, "userId"))
@@ -1835,14 +2029,13 @@ function mod_docitem($dbname, $userId, $docitemId, $docitemJSON) {
         $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
     }
     $sql = preg_replace('/,\s*$/', '', $sql);
-    $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docItemId);
+    $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $docitemId);
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
-// Close connection
     $mysqli->close();
-    log_mod_record($dbname, 'docitems', $docitem, $docitemOld);
-    $response["docItemId"] = $docItemId;
+    log_mod_record('docitems', $docitem, $docitemOld);
+    $response["docitemId"] = $docitemId;
     returnResponse($response);
 }
 
@@ -1852,7 +2045,7 @@ function make_userexternalid($userId) {
     return ($userExternalId);
 }
 
-function add_user($dbname, $userJSON) {
+function add_user($userJSON) {
     $mysqli = getConn();
 
     if ($mysqli === false)
@@ -1868,20 +2061,17 @@ function add_user($dbname, $userJSON) {
 
     $sql = "SELECT id FROM users WHERE deleted = 0 AND userEmail = '" . $userJSON['userEmail'] . "'";
     $res = $mysqli->query($sql);
-    $flag = false;
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $flag = true;
-            break;
+            returnError('User with this email already exists');
         }
         $res->close();
     }
-    if ($flag)
-        returnError('User with this email already exists');
+    
     $passwordHash = password_hash($userJSON['userPassword'], PASSWORD_BCRYPT);    
     $uploadedTime = time();
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, activeSession) VALUES
-        ('" . $uploadedTime . "', '', '', '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $passwordHash . "', '', '', '')";
+    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments) VALUES
+        ('" . $uploadedTime . "', 0, 0, '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $passwordHash . "', '', '')";
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
@@ -1911,12 +2101,12 @@ function add_user($dbname, $userJSON) {
         returnError($mysqli->error);
     $mysqli->close();
     $record['userExternalId'] = $userExternalId;
-    log_new_record($dbname, $tableName, $record);
+    log_new_record('users', $record);
     $response["userId"] = $userExternalId;
     returnResponse($response);
 }
 
-function mod_user($dbname, $userId, $userJSON) {
+function mod_user($userId, $userJSON) {
     $mysqli = getConn();
 
     if ($mysqli === false)
@@ -1960,12 +2150,12 @@ function mod_user($dbname, $userId, $userJSON) {
     if ($res === false)
         returnError($mysqli->error);
     $mysqli->close();
-    log_mod_record($dbname, 'users', $userJSON, $userOld);
+    log_mod_record('users', $userJSON, $userOld);
     $response["userId"] = $userId;
     returnResponse($response);
 }
 
-function get_user_id($dbname, $userJSON) {
+function get_user_id($userJSON) {
     $mysqli = getConn();
 
 // Check connection
@@ -1999,7 +2189,7 @@ function get_user_id($dbname, $userJSON) {
     returnResponse($userRes);
 }
 
-function get_user_details($dbname, $userId) {
+function get_user_details($userId) {
     $mysqli = getConn();
 
     if ($mysqli === false)
@@ -2021,7 +2211,7 @@ function get_user_details($dbname, $userId) {
     returnResponse($userRes);
 }
 
-function user_forgot_password($dbname, $userJSON) {
+function user_forgot_password($userJSON) {
 //  Need to send email to user with temporary password that user will change to the new one
     $mysqli = getConn();
 
@@ -2049,9 +2239,8 @@ function user_forgot_password($dbname, $userJSON) {
     returnResponse($response);
 }
 
-function add_doc_image($dbname, $userId, $participantId) {
+function add_doc($userId, $participantId) {
     $mysqli = getConn();
-
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
@@ -2059,6 +2248,15 @@ function add_doc_image($dbname, $userId, $participantId) {
     if (empty($participantId))
         returnError('participantId is empty');
 
+    $sql = "SELECT id FROM participants WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$participantId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Participant with this id does not belong to the user with this id');
+        $res->close();
+    }
+    
     $uploadedTime = time();
     $sql = "SELECT userName, participantName FROM participants WHERE deleted = 0 AND userid = " . $userId . " AND id = " . $participantId;
     $res = $mysqli->query($sql);
@@ -2073,12 +2271,10 @@ function add_doc_image($dbname, $userId, $participantId) {
         $res->close();
     }
 
-    $imageFileName = get_image_upload_url($userId);
-
     $sql = "INSERT INTO docs (uploadedTime, updatedTime, deleted, docType, docStatusUpload, docStatusReview, docStatusComplete, docStatusNote, 
-                userId, userName, participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageFileName, comments) VALUES
-                (" . $uploadedTime . ", 0, 0, '', 'uploaded', '', '', '', " . $userId . ", '" . $userName . "', " . $participantId . ", 
-                '" . $participantName . "', 0,'', 0, '', '', '', '" . $imageFileName . "', '')";
+                userId, userName, participantId, participantName, particInsPlanId, particInsPlanName, docTime, docAmount, indivDeductPaid, familyDeductPaid, imageId, comments) VALUES
+                (" . $uploadedTime . ", 0, 0, '', '', '', '', '', " . $userId . ", '" . $userName . "', " . $participantId . ", 
+                '" . $participantName . "', 0,'', 0, '', '', '', '', '')";
 
     $res = $mysqli->query($sql);
     if ($res === false)
@@ -2086,66 +2282,311 @@ function add_doc_image($dbname, $userId, $participantId) {
     $docId = $mysqli->insert_id;
     $sql = "SELECT * FROM docs WHERE deleted = 0 AND id = " . $docId;
     $res = $mysqli->query($sql);
+    $record = array();
     while ($record = $res->fetch_assoc()) {
         break;
     }
     $res->close();
     $mysqli->close();
-    log_new_record($dbname, 'docs', $record);
-    $response["imageFileName"] = storageURL($imageFileName);
+    log_new_record('docs', $record);
     $response["docId"] = $docId;
     returnResponse($response);
 }
 
-function mod_doc_image($dbname, $userId, $docId) {
+function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
+//  $tableName  = users/participants/docs   
+//  $recorId    = userId/participantId/docId    
+//  $totPages - total number of pages (1 for user picture, 1 for participant picture, any number for doc)
+//  $pageNum - total number of pages (1 for user picture, 1 for participant picture, a number between 1 and $totPages for doc)
     $mysqli = getConn();
-
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
-    if (empty($docId))
-        returnError('docId is empty');
+    if ($totPages < 1 || $totPages > 20)
+        returnError('Number of pages should be between 1 and 20');
+    if ($pageNum < 1 || $pageNum > $totPages)
+        returnError('PageNum is incorrect');
 
-    $updatedTime = time();
-    $sql = "SELECT imageFileName FROM docs WHERE deleted = 0 AND userid = '" . $userId . "' AND id = " . $docId;
+    if (strcasecmp ($tableName, "users")) {
+        $sql = "SELECT id FROM ".$tableName." WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$recorId."'";
+        $res = $mysqli->query($sql);
+        if (!($res === false)) {
+            $row = $res->fetch_assoc();
+            if ($row == NULL)
+                returnError($tableName.' with this id does not belong to the user with this id');
+            $res->close();
+        }
+    }
+    
+    $uploadedTime = time();
+    $sql = "SELECT id, userName FROM users WHERE deleted = 0 AND id = ".$userId;
     $res = $mysqli->query($sql);
-    $imageFileName = "";
+    $userName = "";
     if (!($res === false)) {
         while ($row = $res->fetch_assoc()) {
-            $imageFileName = $row['imageFileName'];
+            $userName = $row['userName'];
             break;
         }
         $res->close();
     }
+    $imageId = NULL;
+    $imagePageId = NULL;
+    $sql = "SELECT id FROM images WHERE deleted = 0 AND userId = '".$userId."' AND tableName = '".$tableName."' AND recorId = '".$recorId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL) {
+            $imageId = $row['id'];
+        }   
+        $res->close();
+    }
+    if (!$imageId) {
+        $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, fullyUploaded, imageType, userId, userName, tableName, recorId, totPages, comments) VALUES
+                                   (".$uploadedTime.", 0, 0, '', '', '".$userId."', '".$userName."', '".$tableName."', '".$recorId."', '".$totPages."', '')";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        $imageId = $mysqli->insert_id;
+        $sql = "SELECT * FROM images WHERE deleted = 0 AND id = ".$imageId;
+        $res = $mysqli->query($sql);
+        while ($record = $res->fetch_assoc()) {
+            break;
+        }
+        $res->close();
+        log_new_record('images', $record);
+        
+        $sql = "SELECT imageId FROM ".$tableName." WHERE deleted = 0 AND id = '".$recorId."'";
+        $res = $mysqli->query($sql);
+        $imageOld = array();
+        if (!($res === false)) {
+            while ($tableOld = $res->fetch_assoc()) {
+                break;
+            }
+            $res->close();
+        }
+        $table['updatedTime'] = time();
+        $table['imageId'] = $imageId;
+        $sql = "UPDATE ".$tableName." SET imageId = '".$table['imageId']."', updatedTime = ".$table['updatedTime']." WHERE id = '".$recorId."'";
+        $res = $mysqli->query($sql);
+        if ($res === false)
+            returnError($mysqli->error);
+        log_mod_record($tableName, $table, $tableOld);
+    }
+    $sql = "SELECT * FROM imagepages WHERE deleted = 0 AND userId = '".$userId."' AND imageId = '".$imageId."' AND pageNum = '".$pageNum."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row != NULL) 
+            returnError('ImagePage with this pageNum already exists');
+        $res->close();
+    }
+    
     $imageFileName = get_image_upload_url($userId);
-
-    $sql = "UPDATE docs SET updatedTime = " . $updatedTime . ", imageFileName = '" . $imageFileName . "' WHERE userId = '" . $userId . "' AND id = " . $docId;
+    
+    $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, userId, userName, imageId, pageNum, imageFileName, comments) VALUES
+                                    (".$uploadedTime.", 0, 0, '', '".$userId."', '".$userName."', '".$imageId."', '".$pageNum."', '".$imageFileName."', '')";
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
+    $imagePageId = $mysqli->insert_id;
+    $sql = "SELECT * FROM imagepages WHERE deleted = 0 AND id = ".$imagePageId;
+    $res = $mysqli->query($sql);
+    while ($record = $res->fetch_assoc()) {
+        break;
+    }
+    $res->close();
+    log_new_record('imagepages', $record);
+
+    $sql = "SELECT count(id) FROM imagepages WHERE deleted = 0 AND userId = '".$userId."' AND imageId = '".$imageId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        $npages = $row['count(id)'];
+        $res->close();
+        if ($npages == $totPages) {
+            $sql = "SELECT * FROM images WHERE deleted = 0 AND id = " . $imageId;
+            $res = $mysqli->query($sql);
+            $imageOld = array();
+            if (!($res === false)) {
+                while ($imageOld = $res->fetch_assoc()) {
+                    break;
+                }
+                $res->close();
+            }
+            $image['updatedTime'] = time();
+            $image['fullyUploaded'] = 1;
+            $sql = "UPDATE images SET";
+            foreach ($image as $fieldname => $fieldvalue) {
+                $sql .= " " . $fieldname . "='" . $fieldvalue . "',";
+            }
+            $sql = preg_replace('/,\s*$/', '', $sql);
+            $sql = sprintf("%s WHERE userId='%s' AND id='%s'", $sql, $userId, $imageId);
+            $res = $mysqli->query($sql);
+            if ($res === false)
+                returnError($mysqli->error);
+            log_mod_record('images', $image, $imageOld);
+        }   
+    }
+
     $mysqli->close();
-    $new['updatedTime'] = $updatedTime;
-    $old['updatedTime'] = "";
-    log_mod_record($dbname, 'docs', $new['updatedTime'], $old['updatedTime']);
     $response["imageFileName"] = storageURL($imageFileName);
-    $response["docId"] = $docId;
+    $response["imageId"] = $imageId;
+    $response["imagePageId"] = $imagePageId;
     returnResponse($response);
 }
 
-function get_doc_image($dbname, $userId, $docId) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
+function del_image ($userId, $imageId) {
     $mysqli = getConn();
-
-// Check connection
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
         returnError('userId is empty');
-    if (empty($docId))
-        returnError('docId is empty');
+    if (empty($imageId))
+        returnError('imageId is empty');
 
-    $sql = "SELECT imageFileName FROM docs WHERE deleted = 0 AND id = " . $docId . " AND userId = " . $userId;
+    $sql = "SELECT id FROM images WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$imageId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Image with this id does not belong to the user with this id');
+        $res->close();
+    }
+
+    $updatedtime = time();
+    $imagepage['updatedTime'] = $updatedtime;
+    $imagepage['deleted'] = 1;
+    $sql = "SELECT id FROM imagepages WHERE deleted = 0 AND imageId = '".$imageId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        while ($imagepageOld = $res->fetch_assoc()) {
+            $sql1 = "UPDATE imagepages SET";
+            foreach ($imagepage as $fieldname => $fieldvalue) {
+                $sql1 .= " " . $fieldname . "='" . $fieldvalue . "',";
+            }
+            $sql1 = preg_replace('/,\s*$/', '', $sql1);
+            $sql1 = sprintf("%s WHERE userId='%s' AND id='%s'", $sql1, $userId, $imagepageOld['id']);
+            $res1 = $mysqli->query($sql1);
+            if ($res1 === false)
+                returnError($mysqli->error);
+            log_mod_record('imagepages', $imagepage, $imagepageOld);
+        }
+        $res->close();
+    }
+    $image['updatedTime'] = $updatedtime;
+    $image['deleted'] = 1;
+    $sql = "SELECT * FROM images WHERE deleted = 0 AND id = '".$imageId."'";
+    $res = $mysqli->query($sql);
+    $imageOld = array();
+    if (!($res === false)) {
+        while ($imageOld = $res->fetch_assoc()) {
+            $sql1 = "UPDATE images SET";
+            foreach ($image as $fieldname => $fieldvalue) {
+                $sql1 .= " " . $fieldname . "='" . $fieldvalue . "',";
+            }
+            $sql1 = preg_replace('/,\s*$/', '', $sql1);
+            $sql1 = sprintf("%s WHERE userId='%s' AND id='%s'", $sql1, $userId, $imageId);
+            $res1 = $mysqli->query($sql1);
+            if ($res1 === false)
+                returnError($mysqli->error);
+            log_mod_record('images', $image, $imageOld);
+            break;
+        }
+        $res->close();
+    }
+
+    $tableName  = $imageOld['tableName'];
+    $recorId    = $imageOld['recorId'];
+    $sql = "SELECT imageId FROM ".$tableName." WHERE deleted = 0 AND id = '".$recorId."'";
+    $res = $mysqli->query($sql);
+    $tableOld = array();
+    if (!($res === false)) {
+        while ($tableOld = $res->fetch_assoc()) {
+            break;
+        }
+        $res->close();
+    }
+    $table['updatedTime'] = $updatedTime;
+    
+    $sql = "UPDATE ".$tableName." SET imageId = '".$table['imageId']."', updatedTime = ".$table['updatedTime']." WHERE id = '".$recorId."'";
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        returnError($mysqli->error);
+    log_mod_record($tableName, $table, $tableOld);
+    
+    $mysqli->close();
+    $response["imageId"] = $imageId;
+    returnResponse($response);
+}   
+
+function get_image_details ($userId, $imageId) {
+    $mysqli = getConn();
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($imageId))
+        returnError('imageId is empty');
+
+    $sql = "SELECT id FROM images WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$imageId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Image with this id does not belong to the user with this id');
+        $res->close();
+    }
+
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, fullyUploaded, imageType, tableName, recorId, totPages FROM images 
+            WHERE userId = '".$userId."' AND deleted = 0 AND id = ".$imageId;
+    $res = $mysqli->query($sql);
+    $imageDetailRes = array();
+    if (!($res === false)) {
+        while ($row = $res->fetch_assoc()) {
+            $imageDetailRes[] = $row;
+        }
+        $res->close();
+    }
+
+    $mysqli->close();
+    returnResponse($imageDetailRes);
+}   
+
+function get_image_page ($userId, $imageId, $pageNum) {
+    $mysqli = getConn();
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+    if (empty($userId))
+        returnError('userId is empty');
+    if (empty($imageId))
+        returnError('imageId is empty');
+    if (empty($pageNum))
+        returnError('pageNum is empty');
+
+    $sql = "SELECT id, fullyUploaded, totPages FROM images WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$imageId."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Image with this id does not belong to the user with this id');
+        if ($pageNum < 1 || $pageNum > $row['totPages'])
+            returnError('Incorrect pageNum');
+        if ($row['fullyUploaded'] == 0)
+            returnError('Not all image pages for this image are uploaded yet');
+        $res->close();
+    }
+    
+    $sql = "SELECT id FROM imagepages WHERE deleted = 0 AND userId = '".$userId."' AND imageId = '".$imageId."' AND pageNum = '".$pageNum."'";
+    $res = $mysqli->query($sql);
+    if (!($res === false)) {
+        $row = $res->fetch_assoc();
+        if ($row == NULL)
+            returnError('Image page with this id does not belong to the image with this id');
+        $res->close();
+    }
+    
+    $sql = "SELECT imageFileName FROM imagepages WHERE deleted = 0 AND userId = '".$userId."' AND imageId = ".$imageId." AND pageNum = '".$pageNum."'";
     $res = $mysqli->query($sql);
     $imageFileName = "";
     if (!($res === false)) {
@@ -2158,215 +2599,9 @@ function get_doc_image($dbname, $userId, $docId) {
 
     $imageRes['imageFileName'] = storageURL($imageFileName);
     returnResponse($imageRes);
-}
+}   
 
-function add_partic_picture($dbname, $userId, $participantId) {
-    $mysqli = getConn();
-
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userId))
-        returnError('userId is empty');
-    if (empty($participantId))
-        returnError('participantId is empty');
-    $updatedTime = time();
-    $imageFileName = get_image_upload_url($userId);
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    while ($recordOld = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $sql = "UPDATE participants SET updatedTime = " . $updatedTime . ", particPictFilename = '" . $imageFileName . "' WHERE userId = '" . $userId . "' AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    if ($res === false)
-        returnError($mysqli->error);
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    while ($recordNew = $res->fetch_assoc()) {
-        break;
-    }
-
-    $res->close();
-    $mysqli->close();
-    log_mod_record($dbname, 'participants', $recordNew, $recordOld);
-    $response["participantId"] = $participantId;
-    $response["particPictFilename"] = storageURL($imageFileName);
-    returnResponse($response);
-}
-
-function mod_partic_picture($dbname, $userId, $participantId) {
-    $mysqli = getConn();
-
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userId))
-        returnError('userId is empty');
-    if (empty($participantId))
-        returnError('participantId is empty');
-
-    $updatedTime = time();
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    while ($recordOld = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $sql = "SELECT particPictFilename FROM participants WHERE deleted = 0 AND userid = '" . $userId . "' AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    $imageFileName = "";
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $imageFileName = $row['particPictFilename'];
-            break;
-        }
-        $res->close();
-    }
-    $imageFileName = get_image_upload_url($userId);
-
-    $sql = "UPDATE participants SET updatedTime = " . $updatedTime . ", particPictFilename = '" . $imageFileName . "' WHERE userId = '" . $userId . "' AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    if ($res === false)
-        returnError($mysqli->error);
-    $sql = "SELECT * FROM participants WHERE deleted = 0 AND id = " . $participantId;
-    $res = $mysqli->query($sql);
-    while ($recordNew = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $mysqli->close();
-    log_mod_record($dbname, 'participants', $recordNew, $recordOld);
-    $response["participantId"] = $participantId;
-    $response["particPictFilename"] = storageURL($imageFileName);
-    returnResponse($response);
-}
-
-function get_partic_picture($dbname, $userId, $participantId) {
-// Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
-    $mysqli = getConn();
-
-// Check connection
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userId))
-        returnError('userId is empty');
-    if (empty($participantId))
-        returnError('participantId is empty');
-
-    $sql = "SELECT particPictFilename FROM participants WHERE deleted = 0 AND id = " . $participantId . " AND userId = " . $userId;
-    $res = $mysqli->query($sql);
-//var_dump($mysqli);    
-    $imageFileName = "";
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $imageFileName = $row['particPictFilename'];
-            break;
-        }
-        $res->close();
-    }
-    $imageRes["particPictFilename"] = storageURL($imageFileName);
-    returnResponse($imageRes);
-}
-
-function add_user_picture($dbname, $userId) {
-    $mysqli = getConn();
-
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userId))
-        returnError('userId is empty');
-    $updatedTime = time();
-    $imageFileName = get_image_upload_url($userId);
-    $sql = "SELECT userPictFilename FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
-    $res = $mysqli->query($sql);
-    while ($recordOld = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $sql = "UPDATE users SET updatedTime = " . $updatedTime . ", userPictFilename = '" . $imageFileName . "' WHERE id = '" . $userId . "'";
-    $res = $mysqli->query($sql);
-    if ($res === false)
-        returnError($mysqli->error);
-    $sql = "SELECT * FROM users WHERE deleted = 0 AND id = " . $userId;
-    $res = $mysqli->query($sql);
-    while ($recordNew = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $mysqli->close();
-    log_mod_record($dbname, 'users', $recordNew, $recordOld);
-    $response["userId"] = $userId;
-    $response["userPictFilename"] = storageURL($imageFileName);
-    returnResponse($response);
-}
-
-function mod_user_picture($dbname, $userId) {
-    $mysqli = getConn();
-
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userId))
-        returnError('userId is empty');
-
-    $updatedTime = time();
-    $sql = "SELECT * FROM users WHERE deleted = 0 AND id = " . $userId;
-    $res = $mysqli->query($sql);
-    while ($recordOld = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $sql = "SELECT userPictFilename FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
-    $res = $mysqli->query($sql);
-    $imageFileName = "";
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $imageFileName = $row['userPictFilename'];
-            break;
-        }
-        $res->close();
-    }
-    $imageFileName = get_image_upload_url($userId);
-
-    $sql = "UPDATE users SET updatedTime = " . $updatedTime . ", userPictFilename = '" . $imageFileName . "' WHERE id = '" . $userId . "'";
-    $res = $mysqli->query($sql);
-    if ($res === false)
-        returnError($mysqli->error);
-    $sql = "SELECT * FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
-    $res = $mysqli->query($sql);
-    while ($recordNew = $res->fetch_assoc()) {
-        break;
-    }
-    $res->close();
-    $mysqli->close();
-    log_mod_record($dbname, 'users', $recordNew, $recordOld);
-    $response["userId"] = $userId;
-    $response["userPictFilename"] = storageURL($imageFileName);
-    returnResponse($response);
-}
-
-function get_user_picture($dbname, $userId) {
-    $mysqli = getConn();
-
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userId))
-        returnError('userId is empty');
-
-    $sql = "SELECT userPictFilename FROM users WHERE deleted = 0 AND id = '" . $userId . "'";
-    $res = $mysqli->query($sql);
-    $imageFileName = "";
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $imageFileName = $row['userPictFilename'];
-            break;
-        }
-        $res->close();
-    }
-    $imageRes["userPictFilename"] = storageURL($imageFileName);
-    returnResponse($imageRes);
-}
-
-function login($dbname, $userEmail, $password) {
+function login($userEmail, $password) {
 
     $mysqli = getConn();
 
@@ -2430,12 +2665,13 @@ function verify_user_session($userId) {
     }
 }
 
-function signup($dbname, $email, $username, $password, $confirmPassword) {
+
+function signup($email, $username, $password, $confirmPassword) {
     include('login/classes/user.php');
     include('login/classes/phpmailer/mail.php');
     try {
         //create PDO connection
-        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $dbname, $GLOBALS['username'], $GLOBALS['password']);
+        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $GLOBALS['dbName'], $GLOBALS['username'], $GLOBALS['password']);
         //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
         $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
@@ -2534,18 +2770,19 @@ function signup($dbname, $email, $username, $password, $confirmPassword) {
     }
 
     if (empty($error)) {
-        return "success";
+        $response = "success";
     } else {
-        returnError($error);
+        $response = $error;
     }
+    echo json_encode($response);
 }
 
-function activation($dbname) {
+function activation() {
     include('login/classes/user.php');
     include('login/classes/phpmailer/mail.php');
     try {
         //create PDO connection
-        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $dbname, $GLOBALS['username'], $GLOBALS['password']);
+        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $GLOBALS['dbName'], $GLOBALS['username'], $GLOBALS['password']);
         //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
         $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
@@ -2608,23 +2845,26 @@ function main() {
     $request_parts = explode('/', $request);
     $action = $request_parts[sizeof($request_parts) - 1];
     $cfg = json_decode(file_get_contents('php://input'), true);
-    $cfg['dbname'] = "glendor";
+
 
     if ($action == "login")
-        return login($cfg['dbname'], $cfg['userEmail'], $cfg['userPassword']);
+        return login($cfg['userEmail'], $cfg['userPassword']);
+    if ($action == "get_temp_url")
+        return storageURL($cfg['fileName']);
     if ($action == "activation")
-        return activation($cfg['dbname']);
+        return activation();
     if ($action == "signup")
-        return signup($cfg['dbname'], $cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
+        return signup ($cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
     if ($action == "build_db_schema")
-        return build_db_schema($cfg['dbname']);
+        return build_db_schema();
     if ($action == "insert_sample_records")
-        return insert_sample_records($cfg['dbname']);
-        // newly added functions 
+        return insert_sample_records();
     if ($action == "add_user")
-        return add_user($cfg['dbname'], $cfg['userJSON']);
-    if ($action == "logout")
-        return logout();
+        return add_user($cfg['userJSON']);
+    if ($action == "get_user_id")
+        get_user_id($cfg['userJSON']);
+    if ($action == "user_forgot_password")
+        user_forgot_password($cfg['userJSON']);
 
     //  Auth
     if (isset($_POST['userId'])) {
@@ -2632,11 +2872,10 @@ function main() {
         $cfg['userId'] = $_POST['userId'];
     }
     if (isset($cfg['userId'])) {
-        if (!verify_userexternalid($cfg['dbname'], $cfg['userId']))
+        if (!verify_userexternalid($cfg['userId']))
             returnError('userId is incorrect');
-        $cfg['userId'] = get_userinternalid($cfg['dbname'], $cfg['userId']);
+        $cfg['userId'] = get_userinternalid($cfg['userId']);
     }
-
 
     session_start();
     if (!isset($_SESSION["externalId"]) || !isset($_SESSION["session"]))
@@ -2645,73 +2884,61 @@ function main() {
             return returnError('usersession is incorrect');
 
     if ($action == "get_doc_list")
-        get_doc_list($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['dateFrom'], $cfg['dateTo']);
+        get_doc_list($cfg['userId'], $cfg['participantId'], $cfg['dateFrom'], $cfg['dateTo']);
     if ($action == "get_doc_details")
-        get_doc_details($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docId']);
+        get_doc_details($cfg['userId'], $cfg['participantId'], $cfg['docId']);
     if ($action == "get_doc_items")
-        get_doc_items($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docId']);
+        get_doc_items($cfg['userId'], $cfg['participantId'], $cfg['docId']);
     if ($action == "get_home_page_texts")
-        get_home_page_texts($cfg['dbname']);
+        get_home_page_texts();
     if ($action == "get_glendor_snapshot")
-        get_glendor_snapshot($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['eobOnly']);
+        get_glendor_snapshot($cfg['userId'], $cfg['participantId'], $cfg['eobOnly']);
     if ($action == "get_notes")
-        get_notes($cfg['dbname'], $cfg['userId'], $cfg['docId'], $cfg['participantId'], $cfg['particInsPlanId']);
+        get_notes($cfg['userId'], $cfg['docId'], $cfg['participantId'], $cfg['particInsPlanId']);
     if ($action == "get_partic_ins_plans")
-        get_partic_ins_plans($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
+        get_partic_ins_plans($cfg['userId'], $cfg['participantId']);
     if ($action == "get_participants")
-        get_participants($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
+        get_participants($cfg['userId'], $cfg['participantId']);
     if ($action == "get_particproviders")
-        get_particproviders($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
+        get_particproviders($cfg['userId'], $cfg['participantId']);
     if ($action == "add_participant")
-        add_participant($cfg['dbname'], $cfg['userId'], json_decode($_POST["participantJSON"], true));
-    if ($action == "mod_participant")
-        mod_participant($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['participantJSON']);
+        add_participant($cfg['userId'], json_decode($_POST["participantJSON"], true));
     if ($action == "add_partic_ins_plan")
-        add_partic_ins_plan($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['particInsPlanJSON']);
+        add_partic_ins_plan($cfg['userId'], $cfg['participantId'], $cfg['particInsPlanJSON']);
     if ($action == "mod_partic_ins_plan")
-        mod_partic_ins_plan($cfg['dbname'], $cfg['userId'], $cfg['particInsPlanId'], $cfg['particInsPlanJSON']);
+        mod_partic_ins_plan($cfg['userId'], $cfg['particInsPlanId'], $cfg['particInsPlanJSON']);
     if ($action == "add_partic_provider")
-        add_partic_provider($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['particProviderJSON']);
+        add_partic_provider($cfg['userId'], $cfg['participantId'], $cfg['particProviderJSON']);
     if ($action == "mod_partic_provider")
-        mod_partic_provider($cfg['dbname'], $cfg['userId'], $cfg['particProviderId'], $cfg['particProviderJSON']);
+        mod_partic_provider($cfg['userId'], $cfg['particProviderId'], $cfg['particProviderJSON']);
     if ($action == "add_note")
-        add_note($cfg['dbname'], $cfg['userId'], $cfg['participantId'], $cfg['docId'], $cfg['noteJSON']);
+        add_note($cfg['userId'], $cfg['participantId'], $cfg['docId'], $cfg['noteJSON']);
     if ($action == "mod_note")
-        mod_note($cfg['dbname'], $cfg['userId'], $cfg['noteId'], $cfg['noteJSON']);
+        mod_note($cfg['userId'], $cfg['noteId'], $cfg['noteJSON']);
     if ($action == "mod_doc")
-        mod_doc($cfg['dbname'], $cfg['userId'], $cfg['docId'], $cfg['docJSON']);
+        mod_doc($cfg['userId'], $cfg['docId'], $cfg['docJSON']);
     if ($action == "mod_docitem")
-        mod_docitem($cfg['dbname'], $cfg['userId'], $cfg['docitemId'], $cfg['docitemJSON']);
+        mod_docitem($cfg['userId'], $cfg['docitemId'], $cfg['docitemJSON']);
     if ($action == "get_image_upload_url")
         get_image_upload_url();
-
     if ($action == "mod_user")
-        mod_user($cfg['dbname'], $cfg['userId'], $cfg['userJSON']);
-    if ($action == "get_user_id")
-        get_user_id($cfg['dbname'], $cfg['userJSON']);
+        mod_user($cfg['userId'], $cfg['userJSON']);
     if ($action == "get_user_details")
-        get_user_details($cfg['dbname'], $cfg['userId']);
-    if ($action == "user_forgot_password")
-        user_forgot_password($cfg['dbname'], $cfg['userJSON']);
-    if ($action == "add_doc_image")
-        add_doc_image($cfg['dbname'], $_POST['userId'], $_POST['participantId']);
-    if ($action == "mod_doc_image")
-        mod_doc_image($cfg['dbname'], $_POST['userId'], $_POST['docId']);
-    if ($action == "get_doc_image")
-        get_doc_image($cfg['dbname'], $cfg['userId'], $cfg['docId']);
-    if ($action == "add_partic_picture")
-        add_partic_picture($cfg['dbname'], $_POST['userId'], $_POST["participantId"]);
-    if ($action == "mod_partic_picture")
-        mod_partic_picture($cfg['dbname'], $_POST['userId'], $_POST['participantId']);
-    if ($action == "get_partic_picture")
-        get_partic_picture($cfg['dbname'], $cfg['userId'], $cfg['participantId']);
-    if ($action == "add_user_picture")
-        add_user_picture($cfg['dbname'], $_POST['userId']);
-    if ($action == "mod_user_picture")
-        mod_user_picture($cfg['dbname'], $_POST['userId']);
-    if ($action == "get_user_picture")
-        get_user_picture($cfg['dbname'], $cfg['userId']);
+        get_user_details($cfg['userId']);
+
+    if ($action == "add_doc")
+        add_doc($cfg['userId'], $cfg['participantId']);
+    if ($action == "add_image")
+        add_image($_POST['userId'], $_POST['tableName'], $_POST['recorId'], $_POST['totPages'], $_POST['pageNum']);
+    if ($action == "del_image")
+        del_image($cfg['userId'], $cfg['imageId']);
+    if ($action == "get_image_details")
+        get_image_details($cfg['userId'], $cfg['imageId']);
+    if ($action == "get_image_page")
+        get_image_page($cfg['userId'], $cfg['imageId'], $cfg['pageNum']);
 }
+
+$cfg = array();
 
 main();
 ?>
