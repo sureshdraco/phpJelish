@@ -2728,8 +2728,11 @@ function reset_password($userEmail, $newPassword, $passwordResetCode) {
     if ($mysqli === false)
         returnError('Sql Connection error');
 
-    if (!isset($userEmail))
-        returnError("userEmail cant be empty");
+    if (!isset($userEmail) || !isset($newPassword) || !isset($passwordResetCode))
+        returnError("userEmail, password or password resetCode cant be empty");
+
+    if (strlen($newPassword) < 8)
+        returnError('userPassword should have at least 8 characters');
 
     $sql = "SELECT userExternalId, passwordResetCode FROM users WHERE userEmail ='" . $userEmail . "'";
     $res = $mysqli->query($sql);

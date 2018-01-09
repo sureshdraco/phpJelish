@@ -1,7 +1,6 @@
 application: gl20171109
 version: 1
-runtime: php
-env: flex
+runtime: php55
 api_version: 1
 
 handlers:
