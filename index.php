@@ -3,6 +3,7 @@
 use google\appengine\api\users\User;
 use google\appengine\api\users\UserService;
 use google\appengine\api\cloud_storage\CloudStorageTools;
+use google\appengine\api\mail\Message;
 
 error_reporting(E_ERROR);
 define('DIR', 'http://domain.com/');
@@ -12,7 +13,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 $input = json_decode(file_get_contents('php://input'), true);
 $gCloud = getenv('ENVIRONMENT') === 'google';
-$dbName = 'glendor_gcloud';
+$dbName = 'glendor';
 $hostName = 'localhost';
 $userName = 'root';
 $password = 'hercules15';
@@ -245,7 +246,10 @@ function build_db_schema() {
         userExternalId VARCHAR(255) NULL,           
         imageId INT NULL,
         comments VARCHAR(255) NULL,
-        activeSession VARCHAR(255) NULL
+        activeSession VARCHAR(255) NULL,
+        emailVerificationCode VARCHAR(255) NULL,
+        emailVerified TINYINT(1) NULL,
+        passwordResetCode INT NULL
     )";
     if ($mysqli->query($sql) === true)
         echo("Table USERS created successfully\n");
@@ -758,9 +762,9 @@ function insert_sample_records() {
 //  User Info Tables
 //  ====================
 //  Users
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, activeSession) VALUES
-        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '12345678', '1', '', ''),
-        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '87654321', '2', '', '')
+    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, activeSession, emailVerificationCode, emailVerified, passwordResetCode ) VALUES
+        (0, 0, 0, '', 'Jane', 'jane@ymail.com', '".password_hash('12345678', PASSWORD_BCRYPT)."', '1', '', '','',1,0),
+        (0, 0, 0, '', 'Mary123', 'mary123@xyz.com', '".password_hash('12345678', PASSWORD_BCRYPT)."', '2', '', '','',1,0)
     ";
 
     if ($mysqli->query($sql) === true)
@@ -2069,9 +2073,11 @@ function add_user($userJSON) {
     }
     
     $passwordHash = password_hash($userJSON['userPassword'], PASSWORD_BCRYPT);    
+    //create the activasion code
+    $activation = md5(uniqid(rand(), true)); 
     $uploadedTime = time();
-    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments) VALUES
-        ('" . $uploadedTime . "', 0, 0, '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $passwordHash . "', '', '')";
+    $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, emailVerificationCode) VALUES
+        ('" . $uploadedTime . "', 0, 0, '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $passwordHash . "', '', '', '".$activation."')";
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
@@ -2101,6 +2107,7 @@ function add_user($userJSON) {
         returnError($mysqli->error);
     $mysqli->close();
     $record['userExternalId'] = $userExternalId;
+    send_email_verification($userExternalId, $userJSON['userEmail'], $activation);
     log_new_record('users', $record);
     $response["userId"] = $userExternalId;
     returnResponse($response);
@@ -2209,34 +2216,6 @@ function get_user_details($userId) {
 // Close connection
     $mysqli->close();
     returnResponse($userRes);
-}
-
-function user_forgot_password($userJSON) {
-//  Need to send email to user with temporary password that user will change to the new one
-    $mysqli = getConn();
-
-    if ($mysqli === false)
-        returnError('Sql Connection error');
-    if (empty($userJSON))
-        returnError('userJSON is empty');
-    if (empty($userJSON['userEmail']))
-        returnError('userEmail is empty');
-
-    $sql = "SELECT id FROM users WHERE deleted = 0 AND userEmail = '" . $userJSON['userEmail'] . "'";
-    $res = $mysqli->query($sql);
-    $flag = false;
-    if (!($res === false)) {
-        while ($row = $res->fetch_assoc()) {
-            $flag = true;
-            break;
-        }
-        $res->close();
-    }
-    if (!$flag)
-        returnError('User with this email does not exist');
-
-    $response['message'] = "Email with temporary password was sent";
-    returnResponse($response);
 }
 
 function add_doc($userId, $participantId) {
@@ -2637,6 +2616,145 @@ function login($userEmail, $password) {
 
 }
 
+function send_email_verification ($userExternalId, $email, $activation) {
+    $baseURL = "http://localhost/glendor/index.php/activation?x=$userExternalId&activation=$activation";
+    if($GLOBALS['gCloud']) {
+        $baseURL = "https://".getenv('BUCKET_NAME')."/activation?x=$userExternalId&activation=$activation";
+    } 
+
+    echo 'test';
+     //send email
+    $to = $email;
+    $subject = "Registration Confirmation";
+    $body = "<p>Thank you for registering.</p>
+    <p>To activate your account, please click on this link: <a href='".$baseURL."'>".$baseURL."</a></p>
+    <p>Regards Site Admin</p>";
+
+    send_email($to, $subject, $body);
+}
+
+function send_email ($to, $subject, $body) {
+    include('phpmailer/mail.php');
+    var_dump($body);
+    if($GLOBALS['gCloud']) {    
+        try {
+            $message = new Message();
+            $message->setSender('praveenjelish@gmail.com');
+            $message->addTo($to);
+            $message->setSubject($subject);
+            $message->setTextBody($body);
+            $message->send();
+            echo 'Mail Sent';
+        } catch (InvalidArgumentException $e) {
+            echo 'There was an error';
+        }
+    } else {
+        try {
+            $mail = new Mail();
+            $mail->setFrom(SITEEMAIL);
+            $mail->addAddress($to);
+            $mail->subject($subject);
+            $mail->body($body);
+            $mail->send();
+        } catch (Exception $e) {
+            echo 'There was an error';
+        }
+    }
+}   
+
+function activation($userId, $activation) {
+    $mysqli = getConn();
+
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+
+    $sql = "SELECT emailVerificationCode FROM users WHERE userExternalId ='" . $userId . "'";
+    $res = $mysqli->query($sql);
+
+    if ($res === false)
+        returnError($mysqli->error);
+    if(mysqli_num_rows($res) > 1)
+        returnError('more than one user emailVerificationCode found');
+
+    while ($row = mysqli_fetch_assoc($res)) {
+        $res->close();
+        if($row["emailVerificationCode"] == $activation) {
+         $sql = "UPDATE users SET emailVerified = 1 WHERE userExternalId = '" . $userId . "'";
+         $res = $mysqli->query($sql);
+            if ($res === false)
+                returnError($mysqli->error);
+         returnResponse("Mail verified");
+       } else {
+         returnError("Mail cant be verified");
+       }
+    }
+}
+
+function forgot_password($userEmail) {
+    $mysqli = getConn();
+
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+
+    if (!isset($userEmail))
+        returnError("userEmail cant be empty");
+
+    $sql = "SELECT userExternalId FROM users WHERE userEmail ='" . $userEmail . "'";
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        returnError($mysqli->error);
+    $passwordResetCode = mt_rand(1000, 9999);
+    if(mysqli_num_rows($res) === 1) {
+        while ($row = mysqli_fetch_assoc($res)) {
+            $res->close();
+            $sql = "UPDATE users SET passwordResetCode = " . $passwordResetCode . " WHERE userExternalId = '" . $row["userExternalId"] . "'";
+            $res = $mysqli->query($sql);
+            if ($res === false)
+                returnError($mysqli->error);
+            $to = $userEmail;
+            $subject = "Password Reset Pin";
+            $body = "<p>Your Password reset pin is : " .$passwordResetCode. ".</p>";
+            send_email($to, $subject, $body);
+            returnResponse("Reset pin sent to your mail");
+        }
+    } else {
+        returnError("no user email found");
+    }
+}
+
+function reset_password($userEmail, $newPassword, $passwordResetCode) {
+    $mysqli = getConn();
+
+    if ($mysqli === false)
+        returnError('Sql Connection error');
+
+    if (!isset($userEmail))
+        returnError("userEmail cant be empty");
+
+    $sql = "SELECT userExternalId, passwordResetCode FROM users WHERE userEmail ='" . $userEmail . "'";
+    $res = $mysqli->query($sql);
+    if ($res === false)
+        returnError($mysqli->error);
+
+    if(mysqli_num_rows($res) === 1) {
+        while ($row = mysqli_fetch_assoc($res)) {
+            $res->close();
+            if($row["passwordResetCode"] == $passwordResetCode) {
+                $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
+                $sql = "UPDATE users SET userPassword = '" . $passwordHash . "' WHERE userExternalId = '" . $row["userExternalId"] . "'";
+                $res = $mysqli->query($sql);
+                if ($res === false)
+                    returnError($mysqli->error);
+                returnResponse("Password reset successfull");
+            } else {
+                returnError("Wrong password reset code");
+            }
+        }
+    } else {
+        returnError("no user with email found");
+    }
+}
+
 function logout() {
     session_destroy();
     returnResponse('logout successfull');
@@ -2657,161 +2775,12 @@ function verify_user_session($userId) {
         returnError('more than one user found with same session is');
 
     while ($row = mysqli_fetch_assoc($res)) {
+        $res->close();
         if(hash('sha256', $row["updatedTime"] . session_id()) === $_SESSION["session"]) {
             return true;
         } 
         session_destroy();
         return false;
-    }
-}
-
-
-function signup($email, $username, $password, $confirmPassword) {
-    include('login/classes/user.php');
-    include('login/classes/phpmailer/mail.php');
-    try {
-        //create PDO connection
-        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $GLOBALS['dbName'], $GLOBALS['username'], $GLOBALS['password']);
-        //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
-        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-    } catch (PDOException $e) {
-        //show error
-        echo '<p class="bg-danger">' . $e->getMessage() . '</p>';
-        exit;
-    }
-    $user = new User($db);
-    if (!isset($username))
-        $error[] = "Please fill out all fields";
-    if (!isset($email))
-        $error[] = "Please fill out all fields";
-    if (!isset($password))
-        $error[] = "Please fill out all fields";
-
-
-    //very basic validation
-    if (!$user->isValidUsername($username)) {
-        $error[] = 'Usernames must be at least 3 Alphanumeric characters';
-    } else {
-        $stmt = $db->prepare('SELECT username FROM members WHERE username = :username');
-        $stmt->execute(array(':username' => $username));
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!empty($row['username'])) {
-            $error[] = 'Username provided is already in use.';
-        }
-    }
-
-    if (strlen($password) < 3) {
-        $error[] = 'Password is too short.';
-    }
-
-    if (strlen($confirmPassword) < 3) {
-        $error[] = 'Confirm password is too short.';
-    }
-
-    if ($password != $confirmPassword) {
-        $error[] = 'Passwords do not match.';
-    }
-
-    //email validation
-    $decodedEmail = htmlspecialchars_decode($email, ENT_QUOTES);
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error[] = 'Please enter a valid email address';
-    } else {
-        $stmt = $db->prepare('SELECT email FROM members WHERE email = :email');
-        $stmt->execute(array(':email' => $decodedEmail));
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!empty($row['email'])) {
-            $error[] = 'Email provided is already in use.';
-        }
-    }
-
-
-    //if no errors have been created carry on
-    if (!isset($error)) {
-
-        //hash the password
-        $hashedpassword = $user->password_hash($password, PASSWORD_BCRYPT);
-
-        //create the activasion code
-        $activasion = md5(uniqid(rand(), true));
-
-        try {
-
-            //insert into database with a prepared statement
-            $stmt = $db->prepare('INSERT INTO members (username,password,email,active) VALUES (:username, :password, :email, :active)');
-            $stmt->execute(array(
-                ':username' => $username,
-                ':password' => $hashedpassword,
-                ':email' => $decodedEmail,
-                ':active' => $activasion
-            ));
-            $id = $db->lastInsertId('memberID');
-
-            //send email
-            $to = $email;
-            $subject = "Registration Confirmation";
-            $body = "<p>Thank you for registering.</p>
-            <p>To activate your account, please click on this link: <a href='" . DIR . "index.php/activation?x=$id&y=$activasion'>" . DIR . "index.php/activation?x=$id&y=$activasion</a></p>
-            <p>Regards Site Admin</p>";
-            echo $body;
-
-            $mail = new Mail();
-            $mail->setFrom(SITEEMAIL);
-            $mail->addAddress($to);
-            $mail->subject($subject);
-            $mail->body($body);
-            $mail->send();
-        } catch (PDOException $e) {
-            $error[] = $e->getMessage();
-        }
-    }
-
-    if (empty($error)) {
-        $response = "success";
-    } else {
-        $response = $error;
-    }
-    echo json_encode($response);
-}
-
-function activation() {
-    include('login/classes/user.php');
-    include('login/classes/phpmailer/mail.php');
-    try {
-        //create PDO connection
-        $db = new PDO("mysql:host=" . $GLOBALS['hostName'] . ";charset=utf8mb4;dbname=" . $GLOBALS['dbName'], $GLOBALS['username'], $GLOBALS['password']);
-        //$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);//Suggested to uncomment on production websites
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //Suggested to comment on production websites
-        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-    } catch (PDOException $e) {
-        //show error
-        echo '<p class="bg-danger">' . $e->getMessage() . '</p>';
-        exit;
-    }
-    $user = new User($db);
-    //collect values from the url
-    $memberID = trim($_GET['x']);
-    $active = trim($_GET['y']);
-
-//if id is number and the active token is not empty carry on
-    if (is_numeric($memberID) && !empty($active)) {
-
-        //update users record set the active column to Yes where the memberID and active value match the ones provided in the array
-        $stmt = $db->prepare("UPDATE members SET active = 'Yes' WHERE memberID = :memberID AND active = :active");
-        $stmt->execute(array(
-            ':memberID' => $memberID,
-            ':active' => $active
-        ));
-
-        //if the row was updated redirect the user
-        if ($stmt->rowCount() == 1) {
-            echo "Your account has been activated.";
-        } else {
-            echo "Your account could not be activated.";
-        }
     }
 }
 
@@ -2841,20 +2810,17 @@ function storageURL($archivo) {
 function main() {
     // main function
     global $cfg;
-    $request = $_SERVER['REQUEST_URI'];
+    $request = strtok($_SERVER["REQUEST_URI"],'?');
     $request_parts = explode('/', $request);
     $action = $request_parts[sizeof($request_parts) - 1];
     $cfg = json_decode(file_get_contents('php://input'), true);
-
 
     if ($action == "login")
         return login($cfg['userEmail'], $cfg['userPassword']);
     if ($action == "get_temp_url")
         return storageURL($cfg['fileName']);
     if ($action == "activation")
-        return activation();
-    if ($action == "signup")
-        return signup ($cfg['email'], $cfg['userName'], $cfg['password'], $cfg['confirmPassword']);
+        return activation($_GET['x'], $_GET['activation']);
     if ($action == "build_db_schema")
         return build_db_schema();
     if ($action == "insert_sample_records")
@@ -2863,13 +2829,19 @@ function main() {
         return add_user($cfg['userJSON']);
     if ($action == "get_user_id")
         get_user_id($cfg['userJSON']);
-    if ($action == "user_forgot_password")
-        user_forgot_password($cfg['userJSON']);
+    if ($action == "forgot_password")
+        return forgot_password($cfg['userEmail']);
+    if ($action == "reset_password") 
+        return reset_password($cfg['userEmail'], $cfg['password'], $cfg['passwordResetCode']); 
 
     //  Auth
     if (isset($_POST['userId'])) {
         //if multi form data is used
         $cfg['userId'] = $_POST['userId'];
+    }
+
+    if($action == "send_email_verification") {
+        return send_email_verification($cfg['userId'], $cfg['userEmail'], md5(uniqid(rand(), true)));
     }
     if (isset($cfg['userId'])) {
         if (!verify_userexternalid($cfg['userId']))
