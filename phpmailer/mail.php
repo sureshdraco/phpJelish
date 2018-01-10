@@ -8,8 +8,9 @@ class Mail extends PhpMailer
     public $Host     = 'smtp.gmail.com';
     public $Mailer   = 'smtp';
     public $SMTPAuth = true;
-    public $Username = 'praveenjelish@gmail.com';
-    public $Password = 'Titans1255';
+    //update you gmail usename and password here
+    //public $Username = '';
+    //public $Password = '';
     public $SMTPSecure = 'tls';
     public $WordWrap = 75;
 
