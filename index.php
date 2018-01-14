@@ -423,7 +423,7 @@ function build_db_schema() {
         userId INT NULL,
         userName VARCHAR(255) NULL,
         tableName VARCHAR(255) NULL,
-        recorId INT NULL,
+        recordId INT NULL,
         totPages INT NULL,
         comments VARCHAR(255) NULL
     )";
@@ -913,7 +913,7 @@ function insert_sample_records() {
         die("ERROR: Could not execute $sql. " . $mysqli->error);
 
 //  Images
-    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, fullyUploaded, imageType, userId, userName, tableName, recorId, totpages, comments) VALUES
+    $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, fullyUploaded, imageType, userId, userName, tableName, recordId, totpages, comments) VALUES
         (1505583600, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 1, 2, ''),
         (1506593612, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 2, 1, ''),
         (1506693612, 0, 0, 0, 'Bill', 1, 'Jane',   'docs', 3, 1, ''),
@@ -1395,7 +1395,7 @@ function log_mod_record($tableName, $recordNew, $recordOld) {
 
 function add_participant($userId, $participantJSON) {
     $mysqli = getConn();
-     
+    
     if ($mysqli === false)
         returnError('Sql Connection error');
     if (empty($userId))
@@ -1439,6 +1439,7 @@ function add_participant($userId, $participantJSON) {
     while ($record = $res->fetch_assoc()) {
         break;
     }
+    
     $res->close();
 // Close connection
     $mysqli->close();
@@ -2076,6 +2077,7 @@ function add_user($userJSON) {
     //create the activasion code
     $activation = md5(uniqid(rand(), true)); 
     $uploadedTime = time();
+    
     $sql = "INSERT INTO users (uploadedTime, updatedTime, deleted, userType, userName, userEmail, userPassword, userExternalId, comments, emailVerificationCode) VALUES
         ('" . $uploadedTime . "', 0, 0, '', '" . $userJSON['userName'] . "', '" . $userJSON['userEmail'] . "', '" . $passwordHash . "', '', '', '".$activation."')";
     $res = $mysqli->query($sql);
@@ -2110,6 +2112,13 @@ function add_user($userJSON) {
     send_email_verification($userExternalId, $userJSON['userEmail'], $activation);
     log_new_record('users', $record);
     $response["userId"] = $userExternalId;
+
+// Add User as Participant
+    $partic = array();
+    $partic['participantName']  = $userJSON['userName'];
+    $partic['relatToUser']      = "Self";
+    add_participant ($userId, $partic);
+    
     returnResponse($response);
 }
 
@@ -2272,9 +2281,9 @@ function add_doc($userId, $participantId) {
     returnResponse($response);
 }
 
-function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
+function add_image ($userId, $tableName, $recordId, $totPages, $pageNum) {
 //  $tableName  = users/participants/docs   
-//  $recorId    = userId/participantId/docId    
+//  $recordId   = userId/participantId/docId    
 //  $totPages - total number of pages (1 for user picture, 1 for participant picture, any number for doc)
 //  $pageNum - total number of pages (1 for user picture, 1 for participant picture, a number between 1 and $totPages for doc)
     $mysqli = getConn();
@@ -2288,7 +2297,7 @@ function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
         returnError('PageNum is incorrect');
 
     if (strcasecmp ($tableName, "users")) {
-        $sql = "SELECT id FROM ".$tableName." WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$recorId."'";
+        $sql = "SELECT id FROM ".$tableName." WHERE deleted = 0 AND userId = '".$userId."' AND id = '".$recordId."'";
         $res = $mysqli->query($sql);
         if (!($res === false)) {
             $row = $res->fetch_assoc();
@@ -2311,7 +2320,7 @@ function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
     }
     $imageId = NULL;
     $imagePageId = NULL;
-    $sql = "SELECT id FROM images WHERE deleted = 0 AND userId = '".$userId."' AND tableName = '".$tableName."' AND recorId = '".$recorId."'";
+    $sql = "SELECT id FROM images WHERE deleted = 0 AND userId = '".$userId."' AND tableName = '".$tableName."' AND recordId = '".$recordId."'";
     $res = $mysqli->query($sql);
     if (!($res === false)) {
         $row = $res->fetch_assoc();
@@ -2321,8 +2330,8 @@ function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
         $res->close();
     }
     if (!$imageId) {
-        $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, fullyUploaded, imageType, userId, userName, tableName, recorId, totPages, comments) VALUES
-                                   (".$uploadedTime.", 0, 0, '', '', '".$userId."', '".$userName."', '".$tableName."', '".$recorId."', '".$totPages."', '')";
+        $sql = "INSERT INTO images (uploadedTime, updatedTime, deleted, fullyUploaded, imageType, userId, userName, tableName, recordId, totPages, comments) VALUES
+                                   (".$uploadedTime.", 0, 0, '', '', '".$userId."', '".$userName."', '".$tableName."', '".$recordId."', '".$totPages."', '')";
         $res = $mysqli->query($sql);
         if ($res === false)
             returnError($mysqli->error);
@@ -2335,7 +2344,7 @@ function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
         $res->close();
         log_new_record('images', $record);
         
-        $sql = "SELECT imageId FROM ".$tableName." WHERE deleted = 0 AND id = '".$recorId."'";
+        $sql = "SELECT imageId FROM ".$tableName." WHERE deleted = 0 AND id = '".$recordId."'";
         $res = $mysqli->query($sql);
         $imageOld = array();
         if (!($res === false)) {
@@ -2346,7 +2355,7 @@ function add_image ($userId, $tableName, $recorId, $totPages, $pageNum) {
         }
         $table['updatedTime'] = time();
         $table['imageId'] = $imageId;
-        $sql = "UPDATE ".$tableName." SET imageId = '".$table['imageId']."', updatedTime = ".$table['updatedTime']." WHERE id = '".$recorId."'";
+        $sql = "UPDATE ".$tableName." SET imageId = '".$table['imageId']."', updatedTime = ".$table['updatedTime']." WHERE id = '".$recordId."'";
         $res = $mysqli->query($sql);
         if ($res === false)
             returnError($mysqli->error);
@@ -2476,8 +2485,8 @@ function del_image ($userId, $imageId) {
     }
 
     $tableName  = $imageOld['tableName'];
-    $recorId    = $imageOld['recorId'];
-    $sql = "SELECT imageId FROM ".$tableName." WHERE deleted = 0 AND id = '".$recorId."'";
+    $recordId    = $imageOld['recordId'];
+    $sql = "SELECT imageId FROM ".$tableName." WHERE deleted = 0 AND id = '".$recordId."'";
     $res = $mysqli->query($sql);
     $tableOld = array();
     if (!($res === false)) {
@@ -2488,7 +2497,7 @@ function del_image ($userId, $imageId) {
     }
     $table['updatedTime'] = $updatedTime;
     
-    $sql = "UPDATE ".$tableName." SET imageId = '".$table['imageId']."', updatedTime = ".$table['updatedTime']." WHERE id = '".$recorId."'";
+    $sql = "UPDATE ".$tableName." SET imageId = '".$table['imageId']."', updatedTime = ".$table['updatedTime']." WHERE id = '".$recordId."'";
     $res = $mysqli->query($sql);
     if ($res === false)
         returnError($mysqli->error);
@@ -2517,7 +2526,7 @@ function get_image_details ($userId, $imageId) {
         $res->close();
     }
 
-    $sql = "SELECT id, uploadedTime, updatedTime, deleted, fullyUploaded, imageType, tableName, recorId, totPages FROM images 
+    $sql = "SELECT id, uploadedTime, updatedTime, deleted, fullyUploaded, imageType, tableName, recordId, totPages FROM images 
             WHERE userId = '".$userId."' AND deleted = 0 AND id = ".$imageId;
     $res = $mysqli->query($sql);
     $imageDetailRes = array();
@@ -2588,7 +2597,7 @@ function login($userEmail, $password) {
         returnError('Sql Connection error');
 
     if (!isset($userEmail) || !isset($password))
-        returnError("userEmail and password cant be empty");
+        returnError("userEmail and password can't be empty");
 
     $sql = "SELECT userPassword, userExternalId FROM users WHERE userEmail ='" . $userEmail . "'";
     $res = $mysqli->query($sql);
@@ -2622,7 +2631,7 @@ function send_email_verification ($userExternalId, $email, $activation) {
         $baseURL = "https://".getenv('BUCKET_NAME')."/activation?x=$userExternalId&activation=$activation";
     } 
 
-    echo 'test';
+//    echo 'test';
      //send email
     $to = $email;
     $subject = "Registration Confirmation";
@@ -2630,7 +2639,9 @@ function send_email_verification ($userExternalId, $email, $activation) {
     <p>To activate your account, please click on this link: <a href='".$baseURL."'>".$baseURL."</a></p>
     <p>Regards Site Admin</p>";
 
-    send_email($to, $subject, $body);
+    if($GLOBALS['gCloud']) {
+        send_email($to, $subject, $body);
+    }   
 }
 
 function send_email ($to, $subject, $body) {
@@ -2697,7 +2708,7 @@ function forgot_password($userEmail) {
         returnError('Sql Connection error');
 
     if (!isset($userEmail))
-        returnError("userEmail cant be empty");
+        returnError("userEmail can't be empty");
 
     $sql = "SELECT userExternalId FROM users WHERE userEmail ='" . $userEmail . "'";
     $res = $mysqli->query($sql);
@@ -2742,9 +2753,9 @@ function reset_password($userEmail, $newPassword, $passwordResetCode) {
     if(mysqli_num_rows($res) === 1) {
         while ($row = mysqli_fetch_assoc($res)) {
             $res->close();
-            if($row["passwordResetCode"] == $passwordResetCode) {
+            if($row["passwordResetCode"] != 0 && $row["passwordResetCode"] == $passwordResetCode ) {
                 $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
-                $sql = "UPDATE users SET userPassword = '" . $passwordHash . "' WHERE userExternalId = '" . $row["userExternalId"] . "'";
+                $sql = "UPDATE users SET userPassword = '" . $passwordHash . "', passwordResetCode = 0 WHERE userExternalId = '" . $row["userExternalId"] . "'";
                 $res = $mysqli->query($sql);
                 if ($res === false)
                     returnError($mysqli->error);
@@ -2820,6 +2831,8 @@ function main() {
 
     if ($action == "login")
         return login($cfg['userEmail'], $cfg['userPassword']);
+    if ($action == "logout")
+        return logout();
     if ($action == "get_temp_url")
         return storageURL($cfg['fileName']);
     if ($action == "activation")
@@ -2846,6 +2859,7 @@ function main() {
     if($action == "send_email_verification") {
         return send_email_verification($cfg['userId'], $cfg['userEmail'], md5(uniqid(rand(), true)));
     }
+
     if (isset($cfg['userId'])) {
         if (!verify_userexternalid($cfg['userId']))
             returnError('userId is incorrect');
@@ -2877,7 +2891,7 @@ function main() {
     if ($action == "get_particproviders")
         get_particproviders($cfg['userId'], $cfg['participantId']);
     if ($action == "add_participant")
-        add_participant($cfg['userId'], json_decode($_POST["participantJSON"], true));
+        add_participant($cfg['userId'], $cfg['participantJSON']);
     if ($action == "add_partic_ins_plan")
         add_partic_ins_plan($cfg['userId'], $cfg['participantId'], $cfg['particInsPlanJSON']);
     if ($action == "mod_partic_ins_plan")
@@ -2904,7 +2918,7 @@ function main() {
     if ($action == "add_doc")
         add_doc($cfg['userId'], $cfg['participantId']);
     if ($action == "add_image")
-        add_image($_POST['userId'], $_POST['tableName'], $_POST['recorId'], $_POST['totPages'], $_POST['pageNum']);
+        add_image($cfg['userId'], $_POST['tableName'], $_POST['recordId'], $_POST['totPages'], $_POST['pageNum']);
     if ($action == "del_image")
         del_image($cfg['userId'], $cfg['imageId']);
     if ($action == "get_image_details")
