@@ -64,6 +64,34 @@ function get_aws_image_upload_url($userId) {
     return implode(",", $imageNames);
 }
 
+function insertSampleImages($fileName) {
+    //var_dump($file);
+    $fileExtension = strtolower(end(explode('.', $fileName)));
+    try  {
+        $ch = curl_init();
+        $date = new DateTime();
+        $imageName = $date->getTimestamp() . $fileName;
+        $url = "https://www.googleapis.com/upload/storage/v1/b/" . $GLOBALS["bucketName"] . "/o?uploadType=media&name=" . $imageName . "&key=AIzaSyD4uv3scHBAr3JLeOZXHrRLf9PYcJTlxz0";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents('./UserImages/'.$fileName, FILE_USE_INCLUDE_PATH));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: image/' . $fileExtension));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // unsecure 
+        $content = curl_exec($ch);
+        if (FALSE === $content)
+            throw new Exception(curl_error($ch), curl_errno($ch));
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if (strcmp($httpcode, "200") === 0) {
+            return $imageName;
+        }
+    } catch(Exception $e) {
+        returnError($e->getMessage());
+    }
+
+}
+
 function get_gcloud_image_upload_url($userId) {
     $options = ['gs_bucket_name' => $GLOBALS["bucketName"]];
     $image_upload_result["errors"] = []; // Store all foreseen and unforseen errors here
@@ -755,6 +783,8 @@ function build_db_schema() {
 
 function insert_sample_records() {
     echo("Started insert_sample_records...\n");
+    var_dump(insertSampleImages('1_1511216205.jpg'));
+    return;
 // Attempt MySQL server connection. Assuming you are running MySQL server with default setting (user 'root' with no password) 
     $mysqli = getConn();
 // Attempt insert query execution
@@ -2281,7 +2311,7 @@ function add_doc($userId, $participantId) {
     returnResponse($response);
 }
 
-function add_image ($userId, $tableName, $recordId, $totPages, $pageNum) {
+function add_image ($userId, $tableName, $recordId, $totPages, $pageNum, $fileName) {
 //  $tableName  = users/participants/docs   
 //  $recordId   = userId/participantId/docId    
 //  $totPages - total number of pages (1 for user picture, 1 for participant picture, any number for doc)
@@ -2369,8 +2399,12 @@ function add_image ($userId, $tableName, $recordId, $totPages, $pageNum) {
             returnError('ImagePage with this pageNum already exists');
         $res->close();
     }
-    
-    $imageFileName = get_image_upload_url($userId);
+
+    if($fileName) {
+        $imageFileName = insertSampleImages($fileName);
+    } else {
+        $imageFileName = get_image_upload_url($userId);
+    }
     
     $sql = "INSERT INTO imagepages (uploadedTime, updatedTime, deleted, imagePageType, userId, userName, imageId, pageNum, imageFileName, comments) VALUES
                                     (".$uploadedTime.", 0, 0, '', '".$userId."', '".$userName."', '".$imageId."', '".$pageNum."', '".$imageFileName."', '')";
@@ -2918,7 +2952,7 @@ function main() {
     if ($action == "add_doc")
         add_doc($cfg['userId'], $cfg['participantId']);
     if ($action == "add_image")
-        add_image($cfg['userId'], $_POST['tableName'], $_POST['recordId'], $_POST['totPages'], $_POST['pageNum']);
+        add_image($cfg['userId'], $_POST['tableName'], $_POST['recordId'], $_POST['totPages'], $_POST['pageNum'], $_POST['localFile']);
     if ($action == "del_image")
         del_image($cfg['userId'], $cfg['imageId']);
     if ($action == "get_image_details")
